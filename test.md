@@ -2,8 +2,17 @@
 world
 
 ```python
+print("hello")
+```
 
-print("hello, world!")
+```python
+
+import time
+
+print("hello, world!\n")
+for i in range(0, 10):
+    time.sleep(1)
+    print(i)
 ```
 
 ```c
