@@ -14,7 +14,7 @@ local config = {
     }
 }
 
-local runBuff = nil
+local runDis = {}
 
 local block_query = ts.query.parse("markdown", [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
 
@@ -73,12 +73,16 @@ local createTempFilename = function(language)
 end
 
 local findOrCreateBuffer = function()
-    if runBuff and vim.api.nvim_buf_is_valid(runBuff) then
-        return runBuff
+    if runDis.buf and vim.api.nvim_buf_is_valid(runDis.buf) then
+        return runDis
     end
 
-    runBuff = utils.open_buffer_in_split()
-    return runBuff
+    runDis.buf, runDis.win = utils.open_buffer_in_split()
+    return runDis
+end
+
+local clearBuffer = function()
+    vim.api.nvim_buf_set_lines(runDis.buf, 0, -1, false, {})
 end
 
 
@@ -95,21 +99,18 @@ M.run_on_cursor = function()
     M.run_code(block.language, block.code)
 end
 
-local printStuff = function(event, data)
-    print(event)
-    print(vim.inspect(data))
-
+local handle_command_output = function(event, data)
     if event == "exit" then
         return
     end
 
-    lines = {}
+    local lines = {}
 
     for token in string.gmatch(data, "(.-)\n") do
         table.insert(lines, token)
     end
 
-    utils.append_to_buffer(runBuff, lines)
+    utils.append_to_buffer(runDis.buf, lines)
 end
 
 M.run_code = function(language, content)
@@ -121,13 +122,18 @@ M.run_code = function(language, content)
     end
 
     findOrCreateBuffer()
+    clearBuffer()
 
     tmpfile:write(content)
     tmpfile:close()
 
     local runCmd = config.tools[language].cmd:gsub("{filename}", tmpFileName)
 
-    utils.runCommand(runCmd, printStuff, function(ec) print(ec) end)
+    -- write output header
+    utils.append_to_buffer(runDis.buf, { string.format("------ Running: %s ------", runCmd) })
+    utils.runCommand(runCmd, handle_command_output, function(ec)
+        utils.append_to_buffer(runDis.buf, { string.format("------ Finished with code: %d ------", ec) })
+    end)
 end
 
 M.check = function ()

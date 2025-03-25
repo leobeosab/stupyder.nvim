@@ -16,13 +16,7 @@ M.runCommand = function (command, onRead, onExit)
 
     local handle
     local function on_exit(_, exit_code, _)
-        if exit_code == 0 then
-            print("Command completed successfully")
-        else
-            print("Command failed with exit code", exit_code)
-        end
-
-        onExit(exit_code)
+        vim.schedule(function() onExit(exit_code) end)
         stdout:close()
         stderr:close()
         handle:close()
@@ -57,9 +51,8 @@ M.append_to_buffer = function(buff, lines)
         return
     end
 
-    local current_line = vim.api.nvim_buf_line_count(buff)
+    local current_line = vim.api.nvim_buf_line_count(buff) - 1
 
-    print(vim.inspect(lines))
     vim.api.nvim_buf_set_lines(buff, current_line, current_line, false, lines)
 end
 
