@@ -72,13 +72,32 @@ local createTempFilename = function(language)
     return string.format("%s/%s.%s", dir, randStr, ext)
 end
 
-local findOrCreateBuffer = function()
+local closeRunDis = function()
     if runDis.buf and vim.api.nvim_buf_is_valid(runDis.buf) then
-        return runDis
+        vim.api.nvim_buf_delete(runDis.buf, {})
+        runDis.buf = nil
     end
 
-    runDis.buf, runDis.win = utils.open_buffer_in_split()
-    return runDis
+    if runDis.win and vim.api.nvim_win_is_valid(runDis.win) then
+        vim.api.nvim_win_close(runDis.win, true)
+        runDis.win = nil
+    end
+end
+
+local createRunDis = function(buf)
+    buf = buf or nil
+    runDis.buf, runDis.win = utils.open_buffer_in_split(buf)
+end
+
+local findOrCreateBuffer = function()
+    if runDis.buf and vim.api.nvim_buf_is_valid(runDis.buf) then
+        if not runDis.win or not vim.api.nvim_win_is_valid(runDis.win) then
+            createRunDis(runDis.buf)
+            return
+        end
+    end
+
+    createRunDis()
 end
 
 local clearBuffer = function()

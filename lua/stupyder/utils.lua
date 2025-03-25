@@ -56,8 +56,8 @@ M.append_to_buffer = function(buff, lines)
     vim.api.nvim_buf_set_lines(buff, current_line, current_line, false, lines)
 end
 
-M.open_buffer_in_split = function()
-    local buf = vim.api.nvim_create_buf(false, true)
+M.open_buffer_in_split = function(buf)
+    buf = buf or vim.api.nvim_create_buf(false, true)
 
     vim.cmd('split')
     vim.cmd('wincmd j')
