@@ -1,5 +1,6 @@
 local utils = require("stupyder.utils")
 local runner = require("stupyder.runner")
+local ui = require("stupyder.ui")
 local ts = vim.treesitter
 
 local M = {}
@@ -15,7 +16,7 @@ local config = {
     }
 }
 
-local runDis = {}
+local win = nil
 
 local block_query = ts.query.parse("markdown", [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
 
@@ -74,38 +75,7 @@ local createTempFilename = function(language)
     return string.format("%s/%s.%s", dir, randStr, ext)
 end
 
-local closeRunDis = function()
-    if runDis.buf and vim.api.nvim_buf_is_valid(runDis.buf) then
-        vim.api.nvim_buf_delete(runDis.buf, {})
-        runDis.buf = nil
-    end
-
-    if runDis.win and vim.api.nvim_win_is_valid(runDis.win) then
-        vim.api.nvim_win_close(runDis.win, true)
-        runDis.win = nil
-    end
-end
-
-local createRunDis = function(buf)
-    buf = buf or nil
-    runDis.buf, runDis.win = utils.open_buffer_in_split(buf)
-end
-
 local findOrCreateBuffer = function()
-    if runDis.buf and vim.api.nvim_buf_is_valid(runDis.buf) then
-        if not runDis.win or not vim.api.nvim_win_is_valid(runDis.win) then
-            createRunDis(runDis.buf)
-            return
-        end
-
-        return
-    end
-
-    createRunDis()
-end
-
-local clearBuffer = function()
-    vim.api.nvim_buf_set_lines(runDis.buf, 0, -1, false, {})
 end
 
 M.setup = function (opts)
@@ -143,8 +113,13 @@ M.run_code = function(language, content)
         return
     end
 
-    findOrCreateBuffer()
-    clearBuffer()
+    if not win then
+        win = ui:new()
+    end
+
+    win:open()
+
+    win:clear_buff()
 
     tmpfile:write(content)
     tmpfile:close()
@@ -163,7 +138,7 @@ M.run_code = function(language, content)
 
     M.runner:run_commands(cmds, function(event, data)
         if event == "start" then
-            utils.append_to_buffer(runDis.buf, { string.format("------ Running: %s ------", data.command) })
+            win:append_to_buffer( { string.format("------ Running: %s ------", data.command) } )
         end
 
         if event == "stdout" or event == "stderr" then
@@ -173,12 +148,12 @@ M.run_code = function(language, content)
                 table.insert(lines, token)
             end
 
-            utils.append_to_buffer(runDis.buf, lines)
+            win:append_to_buffer(lines)
         end
 
         if event == "exit" then
             local ec = data
-            utils.append_to_buffer(runDis.buf, { string.format("------ Finished with code: %d ------", ec) })
+            win:append_to_buffer({ string.format("------ Finished with code: %d ------", ec) })
         end
     end)
 
