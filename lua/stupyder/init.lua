@@ -1,4 +1,5 @@
 local utils = require("stupyder.utils")
+local runner = require("stupyder.runner")
 local ts = vim.treesitter
 
 local M = {}
@@ -9,7 +10,7 @@ local config = {
             cmd = "python3 {filename}"
         },
         c = {
-            cmd = ""
+            cmd =  { "gcc {filename} -o {filename}.bin", "{filename}.bin" }
         }
     }
 }
@@ -61,7 +62,8 @@ local createTempFilename = function(language)
     local ext = ""
 
     local languageMap = {
-        python = "py"
+        python = "py",
+        c = "c",
     }
 
     ext = languageMap[language]
@@ -95,6 +97,8 @@ local findOrCreateBuffer = function()
             createRunDis(runDis.buf)
             return
         end
+
+        return
     end
 
     createRunDis()
@@ -104,9 +108,8 @@ local clearBuffer = function()
     vim.api.nvim_buf_set_lines(runDis.buf, 0, -1, false, {})
 end
 
-
 M.setup = function (opts)
-
+    M.runner = runner:new()
 end
 
 M.run_on_cursor = function()
@@ -146,13 +149,39 @@ M.run_code = function(language, content)
     tmpfile:write(content)
     tmpfile:close()
 
-    local runCmd = config.tools[language].cmd:gsub("{filename}", tmpFileName)
+    local runCmd = config.tools[language].cmd
+    if type(runCmd) ~= "table" then
+        runCmd = { runCmd }
+    end
 
-    -- write output header
-    utils.append_to_buffer(runDis.buf, { string.format("------ Running: %s ------", runCmd) })
-    utils.runCommand(runCmd, handle_command_output, function(ec)
-        utils.append_to_buffer(runDis.buf, { string.format("------ Finished with code: %d ------", ec) })
+    cmds = {}
+
+    for _, cmd in ipairs(runCmd) do
+        cmd = cmd:gsub("{filename}", tmpFileName)
+        table.insert(cmds, cmd)
+    end
+
+    M.runner:run_commands(cmds, function(event, data)
+        if event == "start" then
+            utils.append_to_buffer(runDis.buf, { string.format("------ Running: %s ------", data.command) })
+        end
+
+        if event == "stdout" or event == "stderr" then
+            local lines = {}
+
+            for token in string.gmatch(data, "(.-)\n") do
+                table.insert(lines, token)
+            end
+
+            utils.append_to_buffer(runDis.buf, lines)
+        end
+
+        if event == "exit" then
+            local ec = data
+            utils.append_to_buffer(runDis.buf, { string.format("------ Finished with code: %d ------", ec) })
+        end
     end)
+
 end
 
 M.check = function ()

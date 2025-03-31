@@ -6,7 +6,6 @@ print("hello")
 ```
 
 ```python
-
 import time
 
 print("hello, world!\n")
@@ -16,7 +15,10 @@ for i in range(0, 10):
 ```
 
 ```c
-oh god
-why
-me
+#include <stdio.h>
+
+int main() {
+    printf("hello!\n");
+    return 0;
+}
 ```
