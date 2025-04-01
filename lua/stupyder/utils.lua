@@ -2,6 +2,27 @@
 
 local M = {}
 
+M.create_temp_filename = function(language)
+    local dir = "/tmp/stupyder"
+    local randStr = M.generateRandomString()
+    vim.fn.mkdir(dir, "p")
+
+    local ext = ""
+
+    local languageMap = {
+        python = "py",
+        c = "c",
+        bash = "sh",
+    }
+
+    ext = languageMap[language]
+    if ext == "" then
+        print("not supported")
+    end
+
+    return string.format("%s/%s.%s", dir, randStr, ext)
+end
+
 M.append_to_buffer = function(buff, lines)
     if not vim.api.nvim_buf_is_valid(buff) then
         print("Stupyder buff not valid")

@@ -1,9 +1,10 @@
 local utils = require("stupyder.utils")
-local runner = require("stupyder.runner")
 local ui = require("stupyder.ui")
+local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
 local M = {}
+M.current_context = nil
 
 local config = {
     tools = {
@@ -58,31 +59,8 @@ local getCodeBlocks = function ()
     return code_blocks
 end
 
-local createTempFilename = function(language)
-    local dir = "/tmp/stupyder"
-    local randStr = utils.generateRandomString()
-    vim.fn.mkdir(dir, "p")
-
-    local ext = ""
-
-    local languageMap = {
-        python = "py",
-        c = "c",
-    }
-
-    ext = languageMap[language]
-    if ext == "" then
-        print("not supported")
-    end
-
-    return string.format("%s/%s.%s", dir, randStr, ext)
-end
-
-local findOrCreateBuffer = function()
-end
-
 M.setup = function (opts)
-    M.runner = runner:new()
+
 end
 
 M.run_on_cursor = function()
@@ -95,59 +73,10 @@ M.run_on_cursor = function()
 end
 
 M.run_code = function(language, content)
-    if M.runner:is_busy() then
-        print("Currently running: " .. M.runner.current_command)
-    end
-    local tmpFileName = createTempFilename(language)
-    local tmpfile = io.open(tmpFileName, "w")
-    if not tmpfile then
-        print("err")
-        return
-    end
-
     if not win then
         win = ui:new()
     end
-
-    win:open()
-    win:clear_buff()
-
-    tmpfile:write(content)
-    tmpfile:close()
-
-    local runCmd = config.tools[language].cmd
-    if type(runCmd) ~= "table" then
-        runCmd = { runCmd }
-    end
-
-    local cmds = {}
-
-    for _, cmd in ipairs(runCmd) do
-        cmd = cmd:gsub("{filename}", tmpFileName)
-        table.insert(cmds, cmd)
-    end
-
-    M.runner:run_commands(cmds, function(event, data)
-        if event == "start" then
-            win:append_to_buffer( { string.format("------ Running: %s ------", data.command) } )
-        end
-
-        if event == "stdout" or event == "stderr" then
-            local lines = {}
-
-            for token in string.gmatch(data, "(.-)\n") do
-                table.insert(lines, token)
-            end
-
-            win:append_to_buffer(lines)
-        end
-
-        if event == "exit" then
-            local ec = data
-            win:append_to_buffer({ string.format("------ Finished with code: %d ------", ec) })
-        end
-    end)
-
+    contexts.CommandContext:run(language, content, win, config)
 end
 
 M.check = function ()
