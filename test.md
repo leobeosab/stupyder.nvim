@@ -22,3 +22,8 @@ int main() {
     return 0;
 }
 ```
+
+```bash
+echo "ahhhh" >> somefile
+cat somefile
+```

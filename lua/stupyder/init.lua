@@ -12,7 +12,10 @@ local config = {
         },
         c = {
             cmd =  { "gcc {filename} -o {filename}.bin", "{filename}.bin" }
-        }
+        },
+        bash = {
+            cmd = { "chmod +x {filename}", "bash {filename}" }
+        },
     }
 }
 
