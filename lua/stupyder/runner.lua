@@ -4,7 +4,8 @@ M.__index = M
 function M:new(r)
     r = r or {}
     local runner = setmetatable(r, M)
-    runner.current_pid = nil
+    runner.pid = nil
+    runner.process = nil
     runner.queue = {}
 
     return runner
@@ -23,7 +24,6 @@ function M:run_queued_commands(event_cb)
     local stdout = vim.uv.new_pipe(false)
     local stderr = vim.uv.new_pipe(false)
 
-    local handle
     local function on_exit(_, exit_code, _)
         vim.schedule(function()
             event_cb("exit", exit_code)
@@ -33,7 +33,7 @@ function M:run_queued_commands(event_cb)
         end)
         stdout:close()
         stderr:close()
-        handle:close()
+        self.process:close()
 
         if #self.queue > 0 then
             self:run_queued_commands(event_cb)
@@ -42,7 +42,7 @@ function M:run_queued_commands(event_cb)
 
     vim.schedule(function() event_cb("start", { command = command }) end)
 
-    handle = vim.uv.spawn(path, {
+    self.process, self.pid = vim.uv.spawn(path, {
         args = argsTable,
         stdio = {nil, stdout, stderr}
     }, on_exit)
@@ -65,12 +65,43 @@ function M:run_queued_commands(event_cb)
     end)
 end
 
+function M:is_busy()
+    if self.process and self.process:is_active() then
+        return true
+    end
+
+    return false
+end
+
+function M:exit(force)
+    force = force or false
+
+    -- clear the queue
+    self.queue = {}
+
+    if self:is_busy() then
+        if force then
+            self.process:kill("sigterm")
+            self.process = nil
+            self.pid = nil
+        else
+            self.process:close(function ()
+                self.process = nil
+                self.pid = nil
+            end)
+        end
+    end
+
+    self.process = nil
+    self.pid = nil
+end
 
 function M:run_commands(commands, event_cb)
-    -- check type of commands so raw string is put in a table
-    -- check if another command is running using pid
-    -- check if another command is running using queue
-    -- add the {filename} and such configs
+    if self:is_busy() then
+        print("There is currently a process running")
+        return
+    end
+
     for i, v in ipairs(commands) do
         self.queue[i] = v
     end

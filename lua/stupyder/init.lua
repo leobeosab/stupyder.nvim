@@ -91,21 +91,10 @@ M.run_on_cursor = function()
     M.run_code(block.language, block.code)
 end
 
-local handle_command_output = function(event, data)
-    if event == "exit" then
-        return
-    end
-
-    local lines = {}
-
-    for token in string.gmatch(data, "(.-)\n") do
-        table.insert(lines, token)
-    end
-
-    utils.append_to_buffer(runDis.buf, lines)
-end
-
 M.run_code = function(language, content)
+    if M.runner:is_busy() then
+        print("Currently running: " .. M.runner.current_command)
+    end
     local tmpFileName = createTempFilename(language)
     local tmpfile = io.open(tmpFileName, "w")
     if not tmpfile then
@@ -118,7 +107,6 @@ M.run_code = function(language, content)
     end
 
     win:open()
-
     win:clear_buff()
 
     tmpfile:write(content)
@@ -129,7 +117,7 @@ M.run_code = function(language, content)
         runCmd = { runCmd }
     end
 
-    cmds = {}
+    local cmds = {}
 
     for _, cmd in ipairs(runCmd) do
         cmd = cmd:gsub("{filename}", tmpFileName)
