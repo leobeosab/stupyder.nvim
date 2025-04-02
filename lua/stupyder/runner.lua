@@ -37,10 +37,14 @@ function M:run_queued_commands(event_cb)
 
         if #self.queue > 0 then
             self:run_queued_commands(event_cb)
+        else
+            self.current_command = nil
         end
     end
 
     vim.schedule(function() event_cb("start", { command = command }) end)
+
+    self.current_command = command
 
     self.process, self.pid = vim.uv.spawn(path, {
         args = argsTable,

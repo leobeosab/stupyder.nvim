@@ -23,7 +23,7 @@ function CommandContext:run(language, content, win, config)
     tmpfile:write(content)
     tmpfile:close()
 
-    local runCmd = config.tools[language].cmd
+    local runCmd = config.tools[language].contexts.command_context.cmd
     if type(runCmd) ~= "table" then
         runCmd = { runCmd }
     end
@@ -31,7 +31,7 @@ function CommandContext:run(language, content, win, config)
     local cmds = {}
 
     for _, cmd in ipairs(runCmd) do
-        cmd = cmd:gsub("{filename}", tmpFileName)
+        cmd = cmd:gsub("{tmpfile}", tmpFileName)
         table.insert(cmds, cmd)
     end
 

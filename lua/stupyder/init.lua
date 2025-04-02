@@ -6,18 +6,46 @@ local ts = vim.treesitter
 local M = {}
 M.current_context = nil
 
+-- filecommandlists
+-- cmd : {tmpfile} {cwd} {tmpdir}
+-- cwd : {cwd} {tmpdir}
+
 local config = {
     tools = {
         python = {
-            cmd = "python3 {filename}"
+            contexts = {
+                command_context = {
+                    cmd = "python3 {tmpfile}"
+                }
+            }
         },
         c = {
-            cmd =  { "gcc {filename} -o {filename}.bin", "{filename}.bin" }
+            contexts = {
+                command_context = {
+                    cmd =  { "gcc {tmpfile} -o {tmpfile}.bin", "{tmpfile}.bin" }
+                }
+            }
         },
         bash = {
-            cmd = { "chmod +x {filename}", "bash {filename}" }
+            contexts = {
+                command_context = {
+                    cmd = { "chmod +x {tmpfile}", "bash {tmpfile}" }
+                }
+            }
         },
-    }
+
+        lua = {
+            --TODO maybe add enable toggles?
+            contexts = { nvim_context = { enable = true } }
+        },
+    },
+    contexts = {
+        command_context = {
+            cwd = "{cwd}",
+            cmd = "echo \"not implemented\"",
+            env = {}
+        },
+    },
 }
 
 local win = nil
@@ -73,10 +101,27 @@ M.run_on_cursor = function()
 end
 
 M.run_code = function(language, content)
+    local lang_conf = config.tools[language]
+    if not lang_conf or not lang_conf.contexts or utils.table_length(lang_conf.contexts) < 1 then
+        --TODO make this nicer
+        print("lang context not implemented")
+        print(language)
+        return
+    end
+
     if not win then
         win = ui:new()
     end
-    contexts.CommandContext:run(language, content, win, config)
+
+    for k, v in pairs(lang_conf.contexts) do
+        if not contexts[k] then
+            print(k .. " context does not exist")
+        end
+
+        --TODO update config with v for tool specific config
+        contexts[k]:run(language, content, win, config)
+    end
+
 end
 
 M.check = function ()

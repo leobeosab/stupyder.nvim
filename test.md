@@ -27,3 +27,7 @@ int main() {
 echo "ahhhh" >> somefile
 cat somefile
 ```
+
+```lua
+print("hello")
+```
