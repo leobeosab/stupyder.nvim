@@ -7,30 +7,32 @@ local M = {}
 M.current_context = nil
 
 -- TODO remove win from contexts
-
--- filecommandlists
--- cmd : {tmpfile} {cwd} {tmpdir}
--- cwd : {cwd} {tmpdir}
+-- TODO support for multiple temp files
 
 local config = {
     tools = {
         python = {
             contexts = {
                 command_context = {
-                    cmd = "python3 {tmpfile}"
+                    ext = ".py",
+                    filename = "test",
+                    cmd = "python3 {code_file}"
                 }
             }
         },
         c = {
             contexts = {
                 command_context = {
-                    cmd = { "gcc {tmpfile} -o {tmpfile}.bin", "{tmpfile}.bin" }
+                    ext =".c",
+                    cmd = { "gcc {code_file} -o {code_file}.bin", "./{code_file}.bin" },
+                    cwd = "{tmpdir}/stupyder/c"
                 }
             }
         },
         bash = {
             contexts = {
                 command_context = {
+                    ext = ".sh",
                     cmd = { "chmod +x {tmpfile}", "bash {tmpfile}" }
                 }
             }
@@ -79,7 +81,7 @@ local config = {
         },
         -- TODO move this to command_context
         command_context = {
-            cwd = "{cwd}",
+            cwd = "./",
             cmd = "echo \"not implemented\"",
             env = {},
             event_handlers = {

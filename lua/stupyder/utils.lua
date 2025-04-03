@@ -1,25 +1,29 @@
-
-
 local M = {}
 
-M.create_temp_filename = function(language)
+M.dir_sep = package.config:sub(1, 1)
+
+M.ends_with_sep = function(path)
+    return path:sub(-1) == M.dir_sep
+end
+
+-- This is hacky but there is no way to get the tmp directory without it
+-- works for now, thanks @djfdyuruiry
+M.get_tmp_dir = function()
+    local tmp_file_path = os.tmpname()
+
+    -- remove generated temp file
+    pcall(os.remove, tmp_file_path)
+
+    local sep_index = tmp_file_path:reverse():find(M.dir_sep)
+    local sub_index = #tmp_file_path - sep_index
+
+    return tmp_file_path:sub(1, sub_index)
+end
+
+M.create_temp_filename = function(ext)
     local dir = "/tmp/stupyder"
-    local randStr = M.generateRandomString()
     vim.fn.mkdir(dir, "p")
-
-    local ext = ""
-
-    local languageMap = {
-        python = "py",
-        c = "c",
-        bash = "sh",
-    }
-
-    ext = languageMap[language]
-    if ext == "" then
-        print("not supported")
-    end
-
+    local randStr = M.generateRandomString()
     return string.format("%s/%s.%s", dir, randStr, ext)
 end
 
@@ -60,6 +64,10 @@ M.table_length = function(table)
     local count = 0
     for _ in pairs(table) do count = count + 1 end
     return count
+end
+
+M.str_includes = function(s, pattern)
+    return string.find(s, pattern, 1, true) ~= nil
 end
 
 return M

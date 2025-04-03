@@ -6,6 +6,71 @@ CommandContext.__index = CommandContext
 CommandContext.runner = Runner:new()
 CommandContext.type = "command_context"
 
+local function create_file(content, config, cwd)
+    local filename
+
+    if type(config.filename) == "function" then
+        filename = filename(config)
+    else
+        filename = config.filename
+    end
+
+    if not filename or config.tmpfile then
+        filename = utils.generateRandomString()
+    end
+
+    filename = vim.fs.normalize(filename .. config.ext)
+
+    local path = cwd .. utils.dir_sep .. filename
+
+    local tmpfile = io.open(path, "w")
+    if not tmpfile then
+        return nil, "Error opening file"
+    end
+
+    tmpfile:write(content)
+    tmpfile:close()
+
+    return { path=path, filename=filename }, nil
+end
+
+local function build_commands(cmd_bp, config, filename)
+    local cmd
+
+    if type(cmd_bp) == "function" then
+        cmd = config.cmd(config)
+    else
+        cmd = cmd_bp
+    end
+
+    if utils.str_includes(cmd, "{tmpdir}") then
+        cmd = cmd:gsub("{tmpdir}", utils.get_tmp_dir())
+    end
+
+    if utils.str_includes(cmd, "{code_file}") then
+        cmd = cmd:gsub("{code_file}", filename)
+    end
+
+    return cmd
+end
+
+local function build_cwd(config)
+    local cwd
+
+    if type(cwd) == "function" then
+        cwd = config.cwd()
+    else
+        cwd = config.cwd
+    end
+
+    if utils.str_includes(cwd, "{tmpdir}") then
+        cwd = cwd:gsub("{tmpdir}", utils.get_tmp_dir())
+    end
+
+    vim.fn.mkdir(cwd, 'p')
+    return vim.fs.normalize(cwd)
+end
+
 function CommandContext:run(content, win, config)
     if self:is_running() then
         print("Currently running: " .. self.runner.current_command)
@@ -18,14 +83,20 @@ function CommandContext:run(content, win, config)
         return
     end
 
-
     -- TODO maybe add config to all events?
     config.event_handlers.on_start(win, {
         config = config
     })
 
-    tmpfile:write(content)
-    tmpfile:close()
+    local cwd = build_cwd(config)
+    local file, err = create_file(content, config, cwd)
+    if not file or err then
+        config.event_handlers.on_error(win, {
+            error = { message = err or "" }
+        })
+        -- TODO make a cleanup label
+        return
+    end
 
     local runCmd = config.cmd
     if type(runCmd) ~= "table" then
@@ -35,10 +106,10 @@ function CommandContext:run(content, win, config)
     local cmds = {}
 
     for _, cmd in ipairs(runCmd) do
-        cmd = cmd:gsub("{tmpfile}", tmpFileName)
-        table.insert(cmds, cmd)
+        table.insert(cmds, build_commands(cmd, config, file.filename))
     end
 
+    self.runner.cwd = cwd
     self.runner:run_commands(cmds, function(event, data)
         if event == "start" then
             config.event_handlers.on_command_start(win, { data = { command = data.command }})
@@ -50,8 +121,6 @@ function CommandContext:run(content, win, config)
             for token in string.gmatch(data, "(.-)\n") do
                 table.insert(lines, token)
             end
-
-            -- TODO make stderr call the error cb?
 
             config.event_handlers.on_data(win, { data = { lines = lines }})
         end

@@ -3,6 +3,9 @@ M.__index = M
 
 function M:new(r)
     r = r or {}
+    if not r.cwd then
+        r.cwd = "./"
+    end
     local runner = setmetatable(r, M)
     runner.pid = nil
     runner.process = nil
@@ -50,6 +53,7 @@ function M:run_queued_commands(event_cb)
     self.current_command = command
 
     self.process, self.pid = vim.uv.spawn(path, {
+        cwd = self.cwd,
         args = argsTable,
         stdio = {nil, stdout, stderr}
     }, on_exit)

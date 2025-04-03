@@ -30,4 +30,27 @@ cat somefile
 
 ```lua
 print("hello")
+
+local str = "python {tmpfile}" 
+print(vim.inspect(string.gmatch(str, "{tmpfile}")))
+
+print(type(dsa))
+print(os.tmpname())
+print(package.config)
+
+local function getTempPath()
+    local directorySeperator = package.config:match("([^\n]*)\n?")
+    local exampleTempFilePath = os.tmpname()
+    
+    -- remove generated temp file
+    pcall(os.remove, exampleTempFilePath)
+
+    local seperatorIdx = exampleTempFilePath:reverse():find(directorySeperator)
+    local tempPathStringLength = #exampleTempFilePath - seperatorIdx
+
+    return exampleTempFilePath:sub(1, tempPathStringLength)
+end
+
+print(vim.fs.normalize("./something"))
+
 ```
