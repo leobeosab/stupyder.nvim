@@ -28,7 +28,10 @@ function M:run_queued_commands(event_cb)
         vim.schedule(function()
             event_cb("exit", exit_code)
             if #self.queue == 0 then
-                event_cb("done")
+                -- return the last exit_code as the final status
+                -- TODO could make this cumilitive and return a fail if any
+                -- command failed
+                event_cb("done", exit_code)
             end
         end)
         stdout:close()

@@ -6,6 +6,8 @@ local ts = vim.treesitter
 local M = {}
 M.current_context = nil
 
+-- TODO remove win from contexts
+
 -- filecommandlists
 -- cmd : {tmpfile} {cwd} {tmpdir}
 -- cwd : {cwd} {tmpdir}
@@ -22,7 +24,7 @@ local config = {
         c = {
             contexts = {
                 command_context = {
-                    cmd =  { "gcc {tmpfile} -o {tmpfile}.bin", "{tmpfile}.bin" }
+                    cmd = { "gcc {tmpfile} -o {tmpfile}.bin", "{tmpfile}.bin" }
                 }
             }
         },
@@ -33,26 +35,83 @@ local config = {
                 }
             }
         },
-
         lua = {
             --TODO maybe add enable toggles?
             contexts = { nvim_context = { enable = true } }
         },
     },
     contexts = {
+        default = {
+            event_handlers = {
+                on_data = function(win, event)
+                    win:append_to_buffer(event.data.lines)
+                end,
+                on_error = function(win, event)
+                    local error = event.error
+
+                    if error then
+                        local msg = "Error "
+
+                        if error.code then
+                            msg = msg .. " Status Code " .. event.error
+                        end
+
+                        if error.message then
+                            msg = msg .. "\n " .. error.message
+                        end
+
+                        print(msg)
+                    end
+                end,
+                on_start = function(win, event)
+                    win:open()
+                    win:clear_buff()
+                    win:append_to_buffer(
+                        {string.format(
+                            "====== Executing: %s Using: %s ======", event.config.tool, event.config.context)})
+                end,
+                on_end = function(win, event)
+                    win:append_to_buffer(
+                        {string.format("====== Finished ======")}
+                    )
+                end,
+            }
+        },
+        -- TODO move this to command_context
         command_context = {
             cwd = "{cwd}",
             cmd = "echo \"not implemented\"",
-            env = {}
+            env = {},
+            event_handlers = {
+                on_command_start = function(win, event)
+                    win:append_to_buffer({ string.format("------ Running: %s ------", event.data.command) })
+                end,
+                on_command_end = function(win, event)
+                    win:append_to_buffer({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
+                end
+            }
+        },
+
+        nvim_context = {
+
         },
     },
 }
 
+-- HACKY but I'm lazy
+-- TODO fix this with a config file
+-- adding in the context name values the config
+-- we could also just have a display name but whatever
+for k, _ in pairs(config.contexts) do
+    config.contexts[k].context = k
+end
+
 local win = nil
 
-local block_query = ts.query.parse("markdown", [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
+local block_query = ts.query.parse("markdown",
+    [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
 
-local getCodeBlocks = function ()
+local getCodeBlocks = function()
     local bufnr = vim.api.nvim_get_current_buf()
     local parser = ts.get_parser(bufnr, "markdown")
     local root = parser:parse()[1]:root()
@@ -78,16 +137,15 @@ local getCodeBlocks = function ()
                     end_line = end_line
                 }
             end
-
         end
 
-        code_blocks[#code_blocks+1] = code_block
+        code_blocks[#code_blocks + 1] = code_block
     end
 
     return code_blocks
 end
 
-M.setup = function (opts)
+M.setup = function(opts)
 
 end
 
@@ -103,7 +161,6 @@ end
 M.run_code = function(language, content)
     local lang_conf = config.tools[language]
     if not lang_conf or not lang_conf.contexts or utils.table_length(lang_conf.contexts) < 1 then
-        --TODO make this nicer
         print("lang context not implemented")
         print(language)
         return
@@ -113,18 +170,26 @@ M.run_code = function(language, content)
         win = ui:new()
     end
 
+    -- Match language up with a context
+    -- TODO support for multiple enabled contexts
     for k, v in pairs(lang_conf.contexts) do
         if not contexts[k] then
             print(k .. " context does not exist")
         end
 
-        --TODO update config with v for tool specific config
-        contexts[k]:run(language, content, win, config)
-    end
+        -- TODO maybe move this out so we just merge the language config
+        -- and the context specific defaults can be managed on setup
+        local context_conf = vim.tbl_deep_extend("force",
+            config.contexts.default, config.contexts[k], lang_conf.contexts[k])
 
+        -- add tool/language to config
+        context_conf.tool = language
+
+        contexts[k]:run(content, win, context_conf)
+    end
 end
 
-M.check = function ()
+M.check = function()
     local blocks = getCodeBlocks()
     local current_line = vim.api.nvim_win_get_cursor(0)[1]
 

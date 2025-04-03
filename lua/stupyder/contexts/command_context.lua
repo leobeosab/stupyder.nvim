@@ -4,26 +4,30 @@ local Runner = require("stupyder.runner")
 local CommandContext = {}
 CommandContext.__index = CommandContext
 CommandContext.runner = Runner:new()
+CommandContext.type = "command_context"
 
-function CommandContext:run(language, content, win, config)
+function CommandContext:run(content, win, config)
     if self:is_running() then
         print("Currently running: " .. self.runner.current_command)
     end
 
-    local tmpFileName = utils.create_temp_filename(language)
+    local tmpFileName = utils.create_temp_filename(config.tool)
     local tmpfile = io.open(tmpFileName, "w")
     if not tmpfile then
         print("err")
         return
     end
 
-    win:open()
-    win:clear_buff()
+
+    -- TODO maybe add config to all events?
+    config.event_handlers.on_start(win, {
+        config = config
+    })
 
     tmpfile:write(content)
     tmpfile:close()
 
-    local runCmd = config.tools[language].contexts.command_context.cmd
+    local runCmd = config.cmd
     if type(runCmd) ~= "table" then
         runCmd = { runCmd }
     end
@@ -37,7 +41,7 @@ function CommandContext:run(language, content, win, config)
 
     self.runner:run_commands(cmds, function(event, data)
         if event == "start" then
-            win:append_to_buffer( { string.format("------ Running: %s ------", data.command) } )
+            config.event_handlers.on_command_start(win, { data = { command = data.command }})
         end
 
         if event == "stdout" or event == "stderr" then
@@ -47,15 +51,19 @@ function CommandContext:run(language, content, win, config)
                 table.insert(lines, token)
             end
 
-            win:append_to_buffer(lines)
+            -- TODO make stderr call the error cb?
+
+            config.event_handlers.on_data(win, { data = { lines = lines }})
         end
 
         if event == "exit" then
-            local ec = data
-            win:append_to_buffer({ string.format("------ Finished with code: %d ------", ec) })
+            config.event_handlers.on_command_end(win, { data = { exit_status = data }})
+        end
+
+        if event == "done" then
+            config.event_handlers.on_end(win, { data = { result_status = data }})
         end
     end)
-
 end
 
 function CommandContext:is_running()

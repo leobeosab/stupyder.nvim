@@ -1,19 +1,17 @@
-local utils = require("stupyder.utils")
-local Runner = require("stupyder.runner")
-
 local NvimContext = {}
 NvimContext.__index = NvimContext
-NvimContext.runner = Runner:new()
+NvimContext.running = false
 
-function NvimContext:run(language, content, win, config)
-    local err, code, ogp, status, result, buff
+function NvimContext:run(content, win, config)
+    local err, code, ogp, status, result
 
     if self:is_running() then
-        err = "Currently running: " .. self.runner.current_command
+        err = "Already running"
+
         goto rt
     end
 
-    if language ~= "lua" then
+    if config.tool ~= "lua" then
         err = "Only Lua is supported for the nvim_context"
         goto rt
     end
@@ -24,43 +22,43 @@ function NvimContext:run(language, content, win, config)
         goto rt
     end
 
-    win:open()
-    win:clear_buff()
-
-    win:append_to_buffer( { string.format("------ Starting Lua Execution ------")})
+    self.running = true
+    config.event_handlers.on_start(win, { config = config })
 
     ogp = print
-    _G.print = function(...)
+    print = function(...)
         -- append to buffer here
         local args = { ... }
         for i, v in ipairs(args) do
             args[i] = vim.inspect(v)
         end
 
-        win:append_to_buffer({table.concat(args)})
+        config.event_handlers.on_data(win, { data = { lines = { table.concat(args) } } })
     end
 
     status, result = pcall(code)
 
     ::rt::
-    _G.print = ogp
-    -- TODO callback with error for error
+    print = ogp or print
+    self.running = false
+
     if err then
-        if result then
-            win:append_to_buffer( { string.format("Result: %s", result)})
-        end
-        win:append_to_buffer( { string.format("------ Failed with status: %s ------", tostring(status))})
+        config.event_handlers.on_error(win, { error = { message = err, code = status } })
     end
 
-    win:append_to_buffer( { string.format("------ Completed with status: %s ------", tostring(status))})
+    if result then
+        config.event_handlers.on_error(win, { error = { message = result, code = status } })
+    end
+
+    config.event_handlers.on_end(win, { data = { result_status = status } })
 end
 
 function NvimContext:is_running()
-    return self.runner:is_busy()
+    return self.running
 end
 
 function NvimContext:cancel(force)
-    return self.runner:exit(force)
+    print("not implemented")
 end
 
 return NvimContext
