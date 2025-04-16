@@ -3,6 +3,10 @@ local ui = require("stupyder.ui")
 local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
+local modes = {
+    win = require("stupyder.modes.win")
+}
+
 local M = {}
 M.current_context = nil
 
@@ -33,7 +37,7 @@ local config = {
             contexts = {
                 command_context = {
                     ext = ".sh",
-                    cmd = { "chmod +x {tmpfile}", "bash {tmpfile}" }
+                    cmd = { "chmod +x {code_file}", "bash {code_file}" }
                 }
             }
         },
@@ -45,10 +49,10 @@ local config = {
     contexts = {
         default = {
             event_handlers = {
-                on_data = function(win, event)
-                    win:append_to_buffer(event.data.lines)
+                on_data = function(mode, event)
+                    mode:append_lines(event.data.lines)
                 end,
-                on_error = function(win, event)
+                on_error = function(mode, event)
                     local error = event.error
 
                     if error then
@@ -65,15 +69,14 @@ local config = {
                         print(msg)
                     end
                 end,
-                on_start = function(win, event)
-                    win:open()
-                    win:clear_buff()
-                    win:append_to_buffer(
+                on_start = function(mode, event)
+                    mode:start()
+                    mode:append_lines(
                         {string.format(
                             "====== Executing: %s Using: %s ======", event.config.tool, event.config.context)})
                 end,
-                on_end = function(win, event)
-                    win:append_to_buffer(
+                on_end = function(mode, event)
+                    mode:append_lines(
                         {string.format("====== Finished ======")}
                     )
                 end,
@@ -85,11 +88,11 @@ local config = {
             cmd = "echo \"not implemented\"",
             env = {},
             event_handlers = {
-                on_command_start = function(win, event)
-                    win:append_to_buffer({ string.format("------ Running: %s ------", event.data.command) })
+                on_command_start = function(mode, event)
+                    mode:append_lines({ string.format("------ Running: %s ------", event.data.command) })
                 end,
-                on_command_end = function(win, event)
-                    win:append_to_buffer({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
+                on_command_end = function(mode, event)
+                    mode:append_lines({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
                 end
             }
         },
@@ -107,8 +110,6 @@ local config = {
 for k, _ in pairs(config.contexts) do
     config.contexts[k].context = k
 end
-
-local win = nil
 
 local block_query = ts.query.parse("markdown",
     [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
@@ -168,10 +169,6 @@ M.run_code = function(language, content)
         return
     end
 
-    if not win then
-        win = ui:new()
-    end
-
     -- Match language up with a context
     -- TODO support for multiple enabled contexts
     for k, v in pairs(lang_conf.contexts) do
@@ -187,7 +184,7 @@ M.run_code = function(language, content)
         -- add tool/language to config
         context_conf.tool = language
 
-        contexts[k]:run(content, win, context_conf)
+        contexts[k]:run(content, modes.win, context_conf)
     end
 end
 
