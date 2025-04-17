@@ -4,13 +4,13 @@ local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
 local modes = {
-    win = require("stupyder.modes.win")
+    win = require("stupyder.modes.win"),
+    yank = require("stupyder.modes.yank")
 }
 
 local M = {}
 M.current_context = nil
 
--- TODO remove win from contexts
 -- TODO support for multiple temp files
 
 local config = {
@@ -79,6 +79,7 @@ local config = {
                     mode:append_lines(
                         {string.format("====== Finished ======")}
                     )
+                    mode:done()
                 end,
             }
         },
@@ -184,7 +185,7 @@ M.run_code = function(language, content)
         -- add tool/language to config
         context_conf.tool = language
 
-        contexts[k]:run(content, modes.win, context_conf)
+        contexts[k]:run(content, modes.yank, context_conf)
     end
 end
 
