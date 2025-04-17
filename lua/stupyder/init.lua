@@ -1,5 +1,5 @@
 local utils = require("stupyder.utils")
-local ui = require("stupyder.ui")
+local config = require("stupyder.config")
 local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
@@ -12,90 +12,6 @@ local M = {}
 M.current_context = nil
 
 -- TODO support for multiple temp files
-
-local config = {
-    tools = {
-        python = {
-            contexts = {
-                command_context = {
-                    ext = ".py",
-                    filename = "test",
-                    cmd = "python3 {code_file}"
-                }
-            }
-        },
-        c = {
-            contexts = {
-                command_context = {
-                    ext =".c",
-                    cmd = { "gcc {code_file} -o {code_file}.bin", "./{code_file}.bin" },
-                    cwd = "{tmpdir}/stupyder/c"
-                }
-            }
-        },
-        bash = {
-            contexts = {
-                command_context = {
-                    ext = ".sh",
-                    cmd = { "chmod +x {code_file}", "bash {code_file}" }
-                }
-            }
-        },
-        lua = {
-            --TODO maybe add enable toggles?
-            contexts = { nvim_context = { enable = true } }
-        },
-    },
-    contexts = {
-        default = {
-            event_handlers = {
-                on_data = function(mode, event)
-                    mode:append_lines(event.data.lines)
-                end,
-                on_error = function(mode, event)
-                    local error = event.error
-
-                    if error then
-                        local msg = "Error "
-
-                        if error.code then
-                            msg = msg .. " Status Code " .. event.error
-                        end
-
-                        if error.message then
-                            msg = msg .. "\n " .. error.message
-                        end
-
-                        print(msg)
-                    end
-                end,
-                on_start = function(mode, event)
-                    mode:start()
-                    mode:append_lines(
-                        {string.format(
-                            "====== Executing: %s Using: %s ======", event.config.tool, event.config.context)})
-                end,
-                on_end = function(mode, event)
-                    mode:append_lines(
-                        {string.format("====== Finished ======")}
-                    )
-                    mode:done()
-                end,
-            }
-        },
-        nvim_context = {
-
-        },
-    },
-}
-
--- HACKY but I'm lazy
--- TODO fix this with a config file
--- adding in the context name values the config
--- we could also just have a display name but whatever
-for k, _ in pairs(config.contexts) do
-    config.contexts[k].context = k
-end
 
 local block_query = ts.query.parse("markdown",
     [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])

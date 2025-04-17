@@ -71,4 +71,13 @@ local M = {
     },
 }
 
+
+-- HACKY but I'm lazy
+-- TODO fix this with a config file
+-- adding in the context name values the config
+-- we could also just have a display name but whatever
+for k, _ in pairs(M.contexts) do
+    M.contexts[k].context = k
+end
+
 return M
