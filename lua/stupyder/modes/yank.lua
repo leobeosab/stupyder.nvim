@@ -2,6 +2,8 @@ local M = {}
 
 local content = {}
 
+--TODO some sort of running indicator
+
 function M:start()
     content = {}
 end

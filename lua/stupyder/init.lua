@@ -83,21 +83,6 @@ local config = {
                 end,
             }
         },
-        -- TODO move this to command_context
-        command_context = {
-            cwd = "./",
-            cmd = "echo \"not implemented\"",
-            env = {},
-            event_handlers = {
-                on_command_start = function(mode, event)
-                    mode:append_lines({ string.format("------ Running: %s ------", event.data.command) })
-                end,
-                on_command_end = function(mode, event)
-                    mode:append_lines({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
-                end
-            }
-        },
-
         nvim_context = {
 
         },
@@ -177,10 +162,7 @@ M.run_code = function(language, content)
             print(k .. " context does not exist")
         end
 
-        -- TODO maybe move this out so we just merge the language config
-        -- and the context specific defaults can be managed on setup
-        local context_conf = vim.tbl_deep_extend("force",
-            config.contexts.default, config.contexts[k], lang_conf.contexts[k])
+        local context_conf = lang_conf.contexts[k]
 
         -- add tool/language to config
         context_conf.tool = language

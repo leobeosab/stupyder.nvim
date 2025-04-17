@@ -1,10 +1,25 @@
 local utils = require("stupyder.utils")
 local Runner = require("stupyder.runner")
+local default_context = require("stupyder.config").contexts.default
 
 local CommandContext = {}
 CommandContext.__index = CommandContext
 CommandContext.runner = Runner:new()
 CommandContext.type = "command_context"
+
+local default_config = vim.tbl_deep_extend("force", default_context, {
+    cwd = "./",
+    cmd = "echo \"not implemented\"",
+    env = {},
+    event_handlers = {
+        on_command_start = function(mode, event)
+            mode:append_lines({ string.format("------ Running: %s ------", event.data.command) })
+        end,
+        on_command_end = function(mode, event)
+            mode:append_lines({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
+        end
+    }
+})
 
 local function create_file(content, config, cwd)
     local filename
@@ -72,6 +87,8 @@ local function build_cwd(config)
 end
 
 function CommandContext:run(content, win, config)
+    config = vim.tbl_deep_extend("force", default_config, config)
+
     if self:is_running() then
         print("Currently running: " .. self.runner.current_command)
     end

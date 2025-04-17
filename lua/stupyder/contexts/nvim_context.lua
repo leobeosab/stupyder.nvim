@@ -1,8 +1,12 @@
+local default_context = require("stupyder.config").contexts.default
 local NvimContext = {}
 NvimContext.__index = NvimContext
 NvimContext.running = false
 
+local default_config = vim.tbl_deep_extend("force", default_context, {})
+
 function NvimContext:run(content, win, config)
+    config = vim.tbl_deep_extend("force", default_config, config)
     local err, code, ogp, status, result
 
     if self:is_running() then
