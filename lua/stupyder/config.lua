@@ -55,10 +55,10 @@ local M = {
                     end
                 end,
                 on_start = function(mode, event)
-                    mode:start()
+                    mode:start(event)
                     mode:append_lines(
                         {string.format(
-                            "====== Executing: %s Using: %s ======", event.config.tool, event.config.context)})
+                            "====== Executing: %s Using: %s ======", event.run_info.config.tool, event.run_info.config.context)})
                 end,
                 on_end = function(mode, event)
                     mode:append_lines(

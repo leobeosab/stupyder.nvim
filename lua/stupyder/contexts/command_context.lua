@@ -86,8 +86,9 @@ local function build_cwd(config)
     return vim.fs.normalize(cwd)
 end
 
-function CommandContext:run(content, win, config)
-    config = vim.tbl_deep_extend("force", default_config, config)
+function CommandContext:run(content, win, run_info)
+    run_info.config = vim.tbl_deep_extend("force", default_config, run_info.config)
+    local config = run_info.config
 
     if self:is_running() then
         print("Currently running: " .. self.runner.current_command)
@@ -102,7 +103,7 @@ function CommandContext:run(content, win, config)
 
     -- TODO maybe add config to all events?
     config.event_handlers.on_start(win, {
-        config = config
+        run_info = run_info
     })
 
     local cwd = build_cwd(config)

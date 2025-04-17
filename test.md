@@ -2,7 +2,7 @@
 world
 
 ```python
-print("hello")
+print("hello\nworld\nhi")
 ```
 
 ```python

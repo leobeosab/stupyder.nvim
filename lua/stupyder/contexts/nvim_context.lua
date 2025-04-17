@@ -5,8 +5,10 @@ NvimContext.running = false
 
 local default_config = vim.tbl_deep_extend("force", default_context, {})
 
-function NvimContext:run(content, win, config)
-    config = vim.tbl_deep_extend("force", default_config, config)
+function NvimContext:run(content, win, run_info)
+    run_info.config = vim.tbl_deep_extend("force", default_config, run_info.config)
+    local config = run_info.config
+
     local err, code, ogp, status, result
 
     if self:is_running() then
@@ -27,7 +29,7 @@ function NvimContext:run(content, win, config)
     end
 
     self.running = true
-    config.event_handlers.on_start(win, { config = config })
+    config.event_handlers.on_start(win, { run_info = run_info })
 
     ogp = print
     print = function(...)

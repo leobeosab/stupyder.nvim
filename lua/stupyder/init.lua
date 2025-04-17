@@ -5,7 +5,8 @@ local ts = vim.treesitter
 
 local modes = {
     win = require("stupyder.modes.win"),
-    yank = require("stupyder.modes.yank")
+    yank = require("stupyder.modes.yank"),
+    virtual_lines = require('stupyder.modes.virtual_lines')
 }
 
 local M = {}
@@ -60,10 +61,10 @@ M.run_on_cursor = function()
         print("nope")
     end
 
-    M.run_code(block.language, block.code)
+    M.run_code(block.language, block.code, block.loc)
 end
 
-M.run_code = function(language, content)
+M.run_code = function(language, content, location)
     local lang_conf = config.tools[language]
     if not lang_conf or not lang_conf.contexts or utils.table_length(lang_conf.contexts) < 1 then
         print("lang context not implemented")
@@ -73,7 +74,7 @@ M.run_code = function(language, content)
 
     -- Match language up with a context
     -- TODO support for multiple enabled contexts
-    for k, v in pairs(lang_conf.contexts) do
+    for k, _ in pairs(lang_conf.contexts) do
         if not contexts[k] then
             print(k .. " context does not exist")
         end
@@ -83,7 +84,14 @@ M.run_code = function(language, content)
         -- add tool/language to config
         context_conf.tool = language
 
-        contexts[k]:run(content, modes.yank, context_conf)
+        local run_info = {
+            language = language,
+            content = content,
+            location = location,
+            config = context_conf
+        }
+
+        contexts[k]:run(content, modes.virtual_lines, run_info)
     end
 end
 
