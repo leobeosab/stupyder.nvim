@@ -1,4 +1,7 @@
 local M = {
+    run_options = {
+        print_debug_info = false
+    },
     tools = {
         python = {
             contexts = {
@@ -37,54 +40,9 @@ local M = {
         yank = require("stupyder.modes.yank")
     },
     contexts = {
-        default = {
-            event_handlers = {
-                on_data = function(mode, event)
-                    mode:append_lines(event.data.lines)
-                end,
-                on_error = function(mode, event)
-                    local error = event.error
-
-                    if error then
-                        local msg = "Error "
-
-                        if error.code then
-                            msg = msg .. " Status Code " .. event.error
-                        end
-
-                        if error.message then
-                            msg = msg .. "\n " .. error.message
-                        end
-
-                        print(msg)
-                    end
-
-                    print(error)
-                end,
-                on_start = function(mode, event)
-                    mode:start(event)
-                    mode:append_lines(
-                        {string.format(
-                            "====== Executing: %s Using: %s ======", event.run_info.config.tool, event.run_info.config.context)})
-                end,
-                on_end = function(mode, event)
-                    mode:append_lines(
-                        {string.format("====== Finished ======")}
-                    )
-                    mode:done()
-                end,
-            }
-        },
+        default = {},
     },
 }
 
-
--- HACKY but I'm lazy
--- TODO fix this with a config file
--- adding in the context name values the config
--- we could also just have a display name but whatever
-for k, _ in pairs(M.contexts) do
-    M.contexts[k].context = k
-end
 
 return M

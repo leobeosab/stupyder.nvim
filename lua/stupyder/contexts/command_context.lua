@@ -1,3 +1,5 @@
+--TODO add support for only outputting info from certain commands
+--or by default the last command
 local Context = require("stupyder.contexts.context")
 local utils = require("stupyder.utils")
 local Runner = require("stupyder.runner")
@@ -12,10 +14,14 @@ CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.defa
     env = {},
     event_handlers = {
         on_command_start = function(mode, event)
-            mode:append_lines({ string.format("------ Running: %s ------", event.data.command) })
+            if event.run_info.config.run_options.print_debug_info then
+                mode:append_lines({ string.format("------ Running: %s ------", event.data.command) })
+            end
         end,
         on_command_end = function(mode, event)
-            mode:append_lines({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
+            if event.run_info.config.run_options.print_debug_info then
+                mode:append_lines({ string.format("------ Finished with code: %s ------", event.data.exit_status) })
+            end
         end
     }
 })
@@ -108,8 +114,8 @@ function CommandContext:run(content, win, run_info)
     local cwd = build_cwd(config)
     local file, err = create_file(content, config, cwd)
     if not file or err then
-        config.event_handlers.on_error(win, {
-            error = { message = err or "" }
+        config.event_handlers.on_error(win, err or "Cannot create a file", {
+            run_info = run_info,
         })
         -- TODO make a cleanup label
         return
@@ -129,7 +135,10 @@ function CommandContext:run(content, win, run_info)
     self.runner.cwd = cwd
     self.runner:run_commands(cmds, function(event, data)
         if event == "start" then
-            config.event_handlers.on_command_start(win, { data = { command = data.command }})
+            config.event_handlers.on_command_start(win, {
+                data = { command = data.command },
+                run_info = run_info
+            })
         end
 
         if event == "stdout" or event == "stderr" then
@@ -139,15 +148,21 @@ function CommandContext:run(content, win, run_info)
                 table.insert(lines, token)
             end
 
-            config.event_handlers.on_data(win, { data = { lines = lines }})
+            config.event_handlers.on_data(win, lines, { run_info=run_info })
         end
 
         if event == "exit" then
-            config.event_handlers.on_command_end(win, { data = { exit_status = data }})
+            config.event_handlers.on_command_end(win, {
+                data = { exit_status = data },
+                run_info = run_info
+            })
         end
 
         if event == "done" then
-            config.event_handlers.on_end(win, { data = { result_status = data }})
+            config.event_handlers.on_end(win, {
+                data = { result_status = data },
+                run_info = run_info
+            })
         end
     end)
 end

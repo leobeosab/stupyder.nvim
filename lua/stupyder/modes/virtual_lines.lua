@@ -1,7 +1,9 @@
 --TODO add command to clear virtual lines
+--TODO virtual output gets fucked with multiple stdout events
+--TODO highlights?
 
 local VirtualLineMode = {}
-VirtualLineMode.__index = VirtualLineMode
+VirtualLineMode.type = "virtual_line_mode"
 
 local location = {}
 local ext_marks = {}
@@ -43,7 +45,6 @@ function VirtualLineMode:append_lines(lines)
 end
 
 function VirtualLineMode:done()
-    print("Cancel not implemented for mode")
 end
 
 return VirtualLineMode

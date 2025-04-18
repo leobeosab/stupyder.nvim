@@ -1,20 +1,21 @@
-local M = {}
+local Yank = {}
+Yank.type = "yank"
 
 local content = {}
 
 --TODO some sort of running indicator
 
-function M:start()
+function Yank:start()
     content = {}
 end
 
-function M:append_lines(lines)
+function Yank:append_lines(lines)
     for _, v in ipairs(lines) do
         content[#content+1] = v
     end
 end
 
-function M:done()
+function Yank:done()
     local output = ""
 
     for _, v in ipairs(content) do
@@ -28,4 +29,4 @@ function M:done()
     vim.fn.setreg('*', output)
 end
 
-return M
+return Yank

@@ -70,13 +70,14 @@ M.run_code = function(language, content, location)
             print(k .. " context does not exist")
         end
 
-        local context_conf = lang_conf.contexts[k]
+        local run_config = lang_conf.contexts[k]
+        run_config.run_options = config.run_options
 
         local run_info = {
             tool = language,
             content = content,
             location = location,
-            config = context_conf
+            config = run_config
         }
 
         contexts[k]:run(content, config.modes.virtual_lines, run_info)
