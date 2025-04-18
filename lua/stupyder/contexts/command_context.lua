@@ -94,7 +94,7 @@ function CommandContext:run(content, win, run_info)
         print("Currently running: " .. self.runner.current_command)
     end
 
-    local tmpFileName = utils.create_temp_filename(config.tool)
+    local tmpFileName = utils.create_temp_filename(run_info.tool)
     local tmpfile = io.open(tmpFileName, "w")
     if not tmpfile then
         print("err")

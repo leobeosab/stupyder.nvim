@@ -81,11 +81,8 @@ M.run_code = function(language, content, location)
 
         local context_conf = lang_conf.contexts[k]
 
-        -- add tool/language to config
-        context_conf.tool = language
-
         local run_info = {
-            language = language,
+            tool = language,
             content = content,
             location = location,
             config = context_conf

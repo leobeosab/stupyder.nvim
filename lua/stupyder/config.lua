@@ -53,6 +53,8 @@ local M = {
 
                         print(msg)
                     end
+
+                    print(error)
                 end,
                 on_start = function(mode, event)
                     mode:start(event)

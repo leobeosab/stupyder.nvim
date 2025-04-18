@@ -17,7 +17,8 @@ function NvimContext:run(content, win, run_info)
         goto rt
     end
 
-    if config.tool ~= "lua" then
+    print(vim.inspect(run_info))
+    if run_info.tool ~= "lua" then
         err = "Only Lua is supported for the nvim_context"
         goto rt
     end
