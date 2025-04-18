@@ -1,18 +1,18 @@
 local ui = require("stupyder.ui")
 
-local M = {}
+local WinMode = {}
 local win = ui:new()
 
-function M:start()
+function WinMode:start()
     win:open()
     win:clear_buff()
 end
 
-function M:append_lines(lines)
+function WinMode:append_lines(lines)
     win:append_to_buffer(lines)
 end
 
-function M:done()
+function WinMode:done()
 end
 
-return M
+return WinMode

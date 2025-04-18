@@ -1,21 +1,43 @@
 local Context = {}
-Context.__index = Context
+Context.default_config = {
+    event_handlers = {
+        on_data = function(mode, event)
+            mode:append_lines(event.data.lines)
+        end,
+        on_error = function(mode, event)
+            local error = event.error
 
-function Context:new()
-    local context = setmetatable({}, Context)
-    return context
-end
+            if error then
+                local msg = "Error "
 
-function Context:is_running()
-    print("Is running not implemented for context")
-end
+                if error.code then
+                    msg = msg .. " Status Code " .. event.error
+                end
 
-function Context:run(language, code)
-    print("Run not implemented for context")
-end
+                if error.message then
+                    msg = msg .. "\n " .. error.message
+                end
 
-function Context:cancel()
-    print("Cancel not implemented for context")
-end
+                print(msg)
+            end
+
+            print(error)
+        end,
+        on_start = function(mode, event)
+            mode:start(event)
+            mode:append_lines(
+                {string.format(
+                    "====== Executing: %s Using: %s ======", event.run_info.config.tool, event.run_info.config.context)})
+        end,
+        on_end = function(mode, event)
+            mode:append_lines(
+                {string.format("====== Finished ======")}
+            )
+            mode:done()
+        end,
+    }
+}
+
+-- I had run/cancel/etc defined but they cause LSP warnings for overriding a function
 
 return Context

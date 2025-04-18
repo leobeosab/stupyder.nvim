@@ -1,12 +1,11 @@
-local default_context = require("stupyder.config").contexts.default
-local NvimContext = {}
-NvimContext.__index = NvimContext
+local Context = require("stupyder.contexts.context")
+local NvimContext = setmetatable({}, { __index = Context })
+NvimContext.__index = Context
 NvimContext.running = false
-
-local default_config = vim.tbl_deep_extend("force", default_context, {})
+NvimContext.default_Config = vim.tbl_deep_extend("force", NvimContext.default_config, {})
 
 function NvimContext:run(content, win, run_info)
-    run_info.config = vim.tbl_deep_extend("force", default_config, run_info.config)
+    run_info.config = vim.tbl_deep_extend("force", self.default_config, run_info.config)
     local config = run_info.config
 
     local err, code, ogp, status, result
@@ -17,7 +16,6 @@ function NvimContext:run(content, win, run_info)
         goto rt
     end
 
-    print(vim.inspect(run_info))
     if run_info.tool ~= "lua" then
         err = "Only Lua is supported for the nvim_context"
         goto rt

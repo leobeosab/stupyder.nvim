@@ -3,16 +3,7 @@ local config = require("stupyder.config")
 local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
-local modes = {
-    win = require("stupyder.modes.win"),
-    yank = require("stupyder.modes.yank"),
-    virtual_lines = require('stupyder.modes.virtual_lines')
-}
-
 local M = {}
-M.current_context = nil
-
--- TODO support for multiple temp files
 
 local block_query = ts.query.parse("markdown",
     [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
@@ -88,7 +79,7 @@ M.run_code = function(language, content, location)
             config = context_conf
         }
 
-        contexts[k]:run(content, modes.virtual_lines, run_info)
+        contexts[k]:run(content, config.modes.virtual_lines, run_info)
     end
 end
 

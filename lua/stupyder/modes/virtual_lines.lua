@@ -1,14 +1,13 @@
-local config = require("stupyder.config")
 --TODO add command to clear virtual lines
 
-local Mode = {}
-Mode.__index = Mode
+local VirtualLineMode = {}
+VirtualLineMode.__index = VirtualLineMode
 
 local location = {}
 local ext_marks = {}
 local buf_id = -1
 
-function Mode:clear()
+function VirtualLineMode:clear()
     for _, v in pairs(ext_marks) do
         vim.api.nvim_buf_del_extmark(
             buf_id,
@@ -20,13 +19,13 @@ function Mode:clear()
     ext_marks = {}
 end
 
-function Mode:start(event)
+function VirtualLineMode:start(event)
     location = event.run_info.location
     buf_id = vim.api.nvim_get_current_buf()
     self:clear()
 end
 
-function Mode:append_lines(lines)
+function VirtualLineMode:append_lines(lines)
     local ns = vim.api.nvim_create_namespace('stupyder_vl')
 
     local virt_lines = {}
@@ -43,8 +42,8 @@ function Mode:append_lines(lines)
     ext_marks[#ext_marks+1] = mk
 end
 
-function Mode:done()
+function VirtualLineMode:done()
     print("Cancel not implemented for mode")
 end
 
-return Mode
+return VirtualLineMode

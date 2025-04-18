@@ -7,15 +7,15 @@ function Mode:new()
 end
 
 function Mode:start()
-    print("Is running not implemented for mode")
 end
 
 function Mode:append_lines()
-    print("Run not implemented for mode")
+end
+
+function Mode:append_error()
 end
 
 function Mode:done()
-    print("Cancel not implemented for mode")
 end
 
 return Mode

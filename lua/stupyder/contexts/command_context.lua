@@ -1,13 +1,12 @@
+local Context = require("stupyder.contexts.context")
 local utils = require("stupyder.utils")
 local Runner = require("stupyder.runner")
-local default_context = require("stupyder.config").contexts.default
 
-local CommandContext = {}
-CommandContext.__index = CommandContext
+local CommandContext = setmetatable({}, { __index = Context })
 CommandContext.runner = Runner:new()
 CommandContext.type = "command_context"
 
-local default_config = vim.tbl_deep_extend("force", default_context, {
+CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.default_config, {
     cwd = "./",
     cmd = "echo \"not implemented\"",
     env = {},
@@ -87,7 +86,7 @@ local function build_cwd(config)
 end
 
 function CommandContext:run(content, win, run_info)
-    run_info.config = vim.tbl_deep_extend("force", default_config, run_info.config)
+    run_info.config = vim.tbl_deep_extend("force", self.default_config, run_info.config)
     local config = run_info.config
 
     if self:is_running() then
