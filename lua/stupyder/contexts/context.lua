@@ -5,7 +5,7 @@ Context.default_config = {
             mode:append_lines(lines)
         end,
         on_error = function(mode, message, event)
-            print(message)
+            --print(message)
         end,
         on_start = function(mode, event)
             mode:start(event)

@@ -5,20 +5,20 @@
 local VirtualLineMode = {}
 VirtualLineMode.type = "virtual_line_mode"
 
+local content = {}
 local location = {}
-local ext_marks = {}
+local ext_mark = nil
 local buf_id = -1
 
 function VirtualLineMode:clear()
-    for _, v in pairs(ext_marks) do
-        vim.api.nvim_buf_del_extmark(
-            buf_id,
-            vim.api.nvim_create_namespace("stupyder_vl"),
-            v
-        )
-    end
+    content = {}
+    if not ext_mark then return end
 
-    ext_marks = {}
+    vim.api.nvim_buf_del_extmark(
+        buf_id,
+        vim.api.nvim_create_namespace("stupyder_vl"),
+        ext_mark
+    )
 end
 
 function VirtualLineMode:start(event)
@@ -30,18 +30,16 @@ end
 function VirtualLineMode:append_lines(lines)
     local ns = vim.api.nvim_create_namespace('stupyder_vl')
 
-    local virt_lines = {}
     for _, v in ipairs(lines) do
-        virt_lines[#virt_lines+1] = {{v}}
+        content[#content+1] = {{v}}
     end
 
-    local mk = vim.api.nvim_buf_set_extmark(buf_id,
+    ext_mark = vim.api.nvim_buf_set_extmark(buf_id,
         ns, location.end_line, 0, {
-            virt_lines = virt_lines
+            virt_lines = content,
+            id = ext_mark
         }
     )
-
-    ext_marks[#ext_marks+1] = mk
 end
 
 function VirtualLineMode:done()
