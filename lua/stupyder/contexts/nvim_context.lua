@@ -38,7 +38,7 @@ function NvimContext:run(content, win, run_info)
             args[i] = vim.inspect(v)
         end
 
-        config.event_handlers.on_data(win, { data = { lines = { table.concat(args) } } })
+        config.event_handlers.on_data(win, {table.concat(args)}, { run_info = run_info })
     end
 
     status, result = pcall(code)
@@ -48,14 +48,16 @@ function NvimContext:run(content, win, run_info)
     self.running = false
 
     if err then
-        config.event_handlers.on_error(win, { error = { message = err, code = status } })
+        config.event_handlers.on_error(win, err, { message = err, code = status, run_info = run_info })
     end
 
     if result then
-        config.event_handlers.on_error(win, { error = { message = result, code = status } })
+        -- todo fix this shit
+        -- todo tests next fucker
+        config.event_handlers.on_error(win, result, { run_info = run_info, error = { code = status } })
     end
 
-    config.event_handlers.on_end(win, { data = { result_status = status } })
+    config.event_handlers.on_end(win, { data = { result_status = status }, run_info = run_info })
 end
 
 function NvimContext:is_running()
