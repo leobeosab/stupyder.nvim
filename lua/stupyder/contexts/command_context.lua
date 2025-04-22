@@ -91,7 +91,7 @@ local function build_cwd(config)
     return vim.fs.normalize(cwd)
 end
 
-function CommandContext:run(content, win, run_info)
+function CommandContext:run(mode, run_info)
     run_info.config = vim.tbl_deep_extend("force", self.default_config, run_info.config)
     local config = run_info.config
 
@@ -99,7 +99,7 @@ function CommandContext:run(content, win, run_info)
         print("Currently running: " .. self.runner.current_command)
     end
 
-    local tmpFileName = utils.create_temp_filename(run_info.tool)
+    local tmpFileName = utils.create_temp_filename(run_info.block.language)
     local tmpfile = io.open(tmpFileName, "w")
     if not tmpfile then
         print("err")
@@ -107,14 +107,14 @@ function CommandContext:run(content, win, run_info)
     end
 
     -- TODO maybe add config to all events?
-    config.event_handlers.on_start(win, {
+    config.event_handlers.on_start(mode, {
         run_info = run_info
     })
 
     local cwd = build_cwd(config)
-    local file, err = create_file(content, config, cwd)
+    local file, err = create_file(run_info.block.code, config, cwd)
     if not file or err then
-        config.event_handlers.on_error(win, err or "Cannot create a file", {
+        config.event_handlers.on_error(mode, {err or "Cannot create a file"}, {
             run_info = run_info,
         })
         -- TODO make a cleanup label
@@ -135,7 +135,7 @@ function CommandContext:run(content, win, run_info)
     self.runner.cwd = cwd
     self.runner:run_commands(cmds, function(event, data)
         if event == "start" then
-            config.event_handlers.on_command_start(win, {
+            config.event_handlers.on_command_start(mode, {
                 data = { command = data.command },
                 run_info = run_info
             })
@@ -148,18 +148,22 @@ function CommandContext:run(content, win, run_info)
                 table.insert(lines, token)
             end
 
-            config.event_handlers.on_data(win, lines, { run_info=run_info })
+            if event == "stderr" then
+                config.event_handlers.on_error(mode, lines, { run_info=run_info })
+            else
+                config.event_handlers.on_data(mode, lines, { run_info=run_info })
+            end
         end
 
         if event == "exit" then
-            config.event_handlers.on_command_end(win, {
+            config.event_handlers.on_command_end(mode, {
                 data = { exit_status = data },
                 run_info = run_info
             })
         end
 
         if event == "done" then
-            config.event_handlers.on_end(win, {
+            config.event_handlers.on_end(mode, {
                 data = { result_status = data },
                 run_info = run_info
             })

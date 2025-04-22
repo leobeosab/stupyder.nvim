@@ -1,5 +1,4 @@
 --TODO add command to clear virtual lines
---TODO virtual output gets fucked with multiple stdout events
 --TODO highlights?
 
 local VirtualLineMode = {}
@@ -21,18 +20,8 @@ function VirtualLineMode:clear()
     )
 end
 
-function VirtualLineMode:start(event)
-    location = event.run_info.location
-    buf_id = vim.api.nvim_get_current_buf()
-    self:clear()
-end
-
-function VirtualLineMode:append_lines(lines)
+function VirtualLineMode:_display()
     local ns = vim.api.nvim_create_namespace('stupyder_vl')
-
-    for _, v in ipairs(lines) do
-        content[#content+1] = {{v}}
-    end
 
     ext_mark = vim.api.nvim_buf_set_extmark(buf_id,
         ns, location.end_line, 0, {
@@ -40,6 +29,28 @@ function VirtualLineMode:append_lines(lines)
             id = ext_mark
         }
     )
+end
+
+function VirtualLineMode:start(event)
+    location = event.run_info.block.loc
+    buf_id = vim.api.nvim_get_current_buf()
+    self:clear()
+end
+
+function VirtualLineMode:append_lines(lines)
+    for _, v in ipairs(lines) do
+        content[#content+1] = {{v}}
+    end
+
+    self:_display()
+end
+
+function VirtualLineMode:append_errors(lines)
+    for _, v in ipairs(lines) do
+        content[#content+1] = {{v, "ErrorMsg" }}
+    end
+
+    self:_display()
 end
 
 function VirtualLineMode:done()

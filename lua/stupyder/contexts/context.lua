@@ -4,8 +4,8 @@ Context.default_config = {
         on_data = function(mode, lines, event)
             mode:append_lines(lines)
         end,
-        on_error = function(mode, message, event)
-            --print(message)
+        on_error = function(mode, lines, event)
+            mode:append_errors(lines)
         end,
         on_start = function(mode, event)
             mode:start(event)

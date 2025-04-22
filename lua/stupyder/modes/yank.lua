@@ -15,6 +15,10 @@ function Yank:append_lines(lines)
     end
 end
 
+function Yank:append_errors(lines)
+    self:append_lines(lines)
+end
+
 function Yank:done()
     local output = ""
 

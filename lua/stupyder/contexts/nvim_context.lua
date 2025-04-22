@@ -16,7 +16,7 @@ function NvimContext:run(content, win, run_info)
         goto rt
     end
 
-    if run_info.tool ~= "lua" then
+    if run_info.block.language ~= "lua" then
         err = "Only Lua is supported for the nvim_context"
         goto rt
     end
@@ -48,13 +48,13 @@ function NvimContext:run(content, win, run_info)
     self.running = false
 
     if err then
-        config.event_handlers.on_error(win, err, { message = err, code = status, run_info = run_info })
+        config.event_handlers.on_error(win, {err}, { message = err, code = status, run_info = run_info })
     end
 
     if result then
         -- todo fix this shit
         -- todo tests next fucker
-        config.event_handlers.on_error(win, result, { run_info = run_info, error = { code = status } })
+        config.event_handlers.on_error(win, {result}, { run_info = run_info, error = { code = status } })
     end
 
     config.event_handlers.on_end(win, { data = { result_status = status }, run_info = run_info })

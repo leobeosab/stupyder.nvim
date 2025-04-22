@@ -46,20 +46,32 @@ M.setup = function(opts)
 
 end
 
-M.run_on_cursor = function()
+M.run_on_cursor = function(mode)
     local block = M.check()
     if block == nil then
         print("nope")
     end
 
-    M.run_code(block.language, block.code, block.loc)
+    if mode == "" then
+        -- TODO add default mode to config
+        mode = "virtual_lines"
+    end
+
+    for i, v in pairs(config.modes) do
+        if i == mode:lower() then
+            M.run_code(v, block)
+            return
+        end
+    end
+
+    print("Invalid mode")
 end
 
-M.run_code = function(language, content, location)
-    local lang_conf = config.tools[language]
+M.run_code = function(mode, block)
+    local lang_conf = config.tools[block.language]
     if not lang_conf or not lang_conf.contexts or utils.table_length(lang_conf.contexts) < 1 then
         print("lang context not implemented")
-        print(language)
+        print(block.language)
         return
     end
 
@@ -74,13 +86,11 @@ M.run_code = function(language, content, location)
         run_config.run_options = config.run_options
 
         local run_info = {
-            tool = language,
-            content = content,
-            location = location,
+            block = block,
             config = run_config
         }
 
-        contexts[k]:run(content, config.modes.virtual_lines, run_info)
+        contexts[k]:run(mode, run_info)
     end
 end
 

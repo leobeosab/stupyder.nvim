@@ -12,7 +12,7 @@ end
 function Mode:append_lines()
 end
 
-function Mode:append_error()
+function Mode:append_errors()
 end
 
 function Mode:done()
