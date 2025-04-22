@@ -106,7 +106,6 @@ function CommandContext:run(mode, run_info)
         return
     end
 
-    -- TODO maybe add config to all events?
     config.event_handlers.on_start(mode, {
         run_info = run_info
     })

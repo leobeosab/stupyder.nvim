@@ -1,3 +1,4 @@
+local config = require("stupyder.config").modes.yank
 local Yank = {}
 Yank.type = "yank"
 
@@ -27,10 +28,7 @@ function Yank:done()
     end
 
 
-    -- TODO make this configurable
-    -- "" for unnamed
-    -- * for system cb
-    vim.fn.setreg('*', output)
+    vim.fn.setreg(config.register, output)
 end
 
 return Yank

@@ -42,6 +42,9 @@ local default_config = {
         },
         win = {
             close_shortcut = "q",
+        },
+        yank = {
+            register = "\"\""
         }
     },
     contexts = {
