@@ -48,7 +48,6 @@ function NvimContext:run(mode, run_info)
     self.running = false
 
     if err then
-        print("FAIL")
         config.event_handlers.on_error(mode, {err}, { message = err, code = status, run_info = run_info })
     end
 
