@@ -4,6 +4,11 @@ local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
 local M = {}
+local modes = {
+    win = require("stupyder.modes.win"),
+    virtual_lines = require("stupyder.modes.virtual_lines"),
+    yank = require("stupyder.modes.yank")
+}
 
 local block_query = ts.query.parse("markdown",
     [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
@@ -57,7 +62,7 @@ M.run_on_cursor = function(mode)
         mode = "virtual_lines"
     end
 
-    for i, v in pairs(config.modes) do
+    for i, v in pairs(modes) do
         if i == mode:lower() then
             M.run_code(v, block)
             return

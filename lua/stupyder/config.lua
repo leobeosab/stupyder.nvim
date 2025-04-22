@@ -35,9 +35,6 @@ local M = {
         },
     },
     modes = {
-        win = require("stupyder.modes.win"),
-        virtual_lines = require("stupyder.modes.virtual_lines"),
-        yank = require("stupyder.modes.yank")
     },
     contexts = {
         default = {},
