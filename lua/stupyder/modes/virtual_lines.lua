@@ -1,4 +1,5 @@
 --TODO add command to clear virtual lines
+--TODO add truncation option
 
 local config = require("stupyder.config").modes.virtual_lines
 

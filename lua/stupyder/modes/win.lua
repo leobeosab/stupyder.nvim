@@ -2,12 +2,15 @@
 -- TODO add config to not focus output
 
 local ui = require("stupyder.ui")
+local config = require("stupyder.config").modes.win
 
 local WinMode = {}
 local win = ui:new()
 
 function WinMode:start()
-    win:open()
+    win:open({
+        close_shortcut = config.close_shortcut
+    })
     win:clear_buff()
 end
 

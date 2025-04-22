@@ -12,8 +12,25 @@ function M:new(u)
     return window
 end
 
-local function open_buffer_in_split(buf)
-    buf = buf or vim.api.nvim_create_buf(false, true)
+function M:get_or_create_buff()
+    if self.buf and vim.api.nvim_buf_is_valid(self.buf) then
+        return self.buf
+    end
+    self.buf = vim.api.nvim_create_buf(false, true)
+
+    if self.opts.close_shortcut then
+      vim.keymap.set('n', self.opts.close_shortcut,
+        function ()
+            self:close()
+        end,
+        { desc = "Close stupyder output", buffer = self.buf })
+    end
+
+    return self.buf
+end
+
+function M:create_split()
+    local buf = self:get_or_create_buff()
 
     vim.cmd('split')
     vim.cmd('wincmd j')
@@ -23,26 +40,23 @@ local function open_buffer_in_split(buf)
 
     vim.api.nvim_win_set_buf(win, buf)
 
-    return buf, win
+    self.win = win
 end
 
 function M:open(opts)
+    self.opts = opts
     local check = self:check_status()
 
     if check == -1 then
         print("Opening with no buf, but with win")
     end
 
-    if check == -2 then
-        _, self.win = open_buffer_in_split(self.buf)
-    end
-
-    if check == -3 then 
-        self.buf, self.win = open_buffer_in_split()
+    if check == -2 or check == -3 then
+        self:create_split()
     end
 end
 
-function M:close(close_buff)
+function M:close()
     if vim.api.nvim_buf_is_valid(self.buf) then
         vim.api.nvim_buf_delete(self.buf, {})
     end
@@ -51,7 +65,7 @@ function M:close(close_buff)
     self.buf = nil
 
     if vim.api.nvim_win_is_valid(self.win) then
-        vim.api.nvim_win_close(self.win, ture)
+        vim.api.nvim_win_close(self.win, true)
     end
     self.win = nil
 end

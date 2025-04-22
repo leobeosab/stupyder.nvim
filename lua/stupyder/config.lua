@@ -38,6 +38,9 @@ local M = {
         virtual_lines = {
             hl_group = nil,
             error_hl_group = "ErrorMsg"
+        },
+        win = {
+            close_shortcut = "q",
         }
     },
     contexts = {
