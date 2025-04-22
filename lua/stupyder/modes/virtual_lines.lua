@@ -1,5 +1,6 @@
 --TODO add command to clear virtual lines
---TODO highlights?
+
+local config = require("stupyder.config").modes.virtual_lines
 
 local VirtualLineMode = {}
 VirtualLineMode.type = "virtual_line_mode"
@@ -39,7 +40,7 @@ end
 
 function VirtualLineMode:append_lines(lines)
     for _, v in ipairs(lines) do
-        content[#content+1] = {{v}}
+        content[#content+1] = {{v, config.hl_group }}
     end
 
     self:_display()
@@ -47,7 +48,7 @@ end
 
 function VirtualLineMode:append_errors(lines)
     for _, v in ipairs(lines) do
-        content[#content+1] = {{v, "ErrorMsg" }}
+        content[#content+1] = {{v, config.error_hl_group }}
     end
 
     self:_display()

@@ -4,7 +4,7 @@ NvimContext.__index = Context
 NvimContext.running = false
 NvimContext.default_Config = vim.tbl_deep_extend("force", NvimContext.default_config, {})
 
-function NvimContext:run(content, win, run_info)
+function NvimContext:run(mode, run_info)
     run_info.config = vim.tbl_deep_extend("force", self.default_config, run_info.config)
     local config = run_info.config
 
@@ -21,14 +21,14 @@ function NvimContext:run(content, win, run_info)
         goto rt
     end
 
-    code, err = loadstring(content)
+    code, err = loadstring(run_info.block.code)
     if err or not code then
         err = "replace me with a callback"
         goto rt
     end
 
     self.running = true
-    config.event_handlers.on_start(win, { run_info = run_info })
+    config.event_handlers.on_start(mode, { run_info = run_info })
 
     ogp = print
     print = function(...)
@@ -38,7 +38,7 @@ function NvimContext:run(content, win, run_info)
             args[i] = vim.inspect(v)
         end
 
-        config.event_handlers.on_data(win, {table.concat(args)}, { run_info = run_info })
+        config.event_handlers.on_data(mode, {table.concat(args)}, { run_info = run_info })
     end
 
     status, result = pcall(code)
@@ -48,16 +48,15 @@ function NvimContext:run(content, win, run_info)
     self.running = false
 
     if err then
-        config.event_handlers.on_error(win, {err}, { message = err, code = status, run_info = run_info })
+        print("FAIL")
+        config.event_handlers.on_error(mode, {err}, { message = err, code = status, run_info = run_info })
     end
 
     if result then
-        -- todo fix this shit
-        -- todo tests next fucker
-        config.event_handlers.on_error(win, {result}, { run_info = run_info, error = { code = status } })
+        config.event_handlers.on_error(mode, {result}, { run_info = run_info, error = { code = status } })
     end
 
-    config.event_handlers.on_end(win, { data = { result_status = status }, run_info = run_info })
+    config.event_handlers.on_end(mode, { data = { result_status = status }, run_info = run_info })
 end
 
 function NvimContext:is_running()

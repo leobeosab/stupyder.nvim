@@ -31,11 +31,14 @@ local M = {
             }
         },
         lua = {
-            --TODO maybe add enable toggles?
-            contexts = { nvim_context = { enable = true } }
+            contexts = { nvim_context = {} }
         },
     },
     modes = {
+        virtual_lines = {
+            hl_group = nil,
+            error_hl_group = "ErrorMsg"
+        }
     },
     contexts = {
         default = {},
