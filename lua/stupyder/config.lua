@@ -1,10 +1,11 @@
-local M = {
+local default_config = {
     run_options = {
         print_debug_info = false,
         default_mode = "virtual_lines",
     },
     tools = {
         python = {
+            -- TODO support for venv
             contexts = {
                 command_context = {
                     ext = ".py",
@@ -47,6 +48,15 @@ local M = {
         default = {},
     },
 }
+
+local M = default_config
+
+function M:apply_user_config(config)
+    print(vim.inspect(config))
+    for k, v in pairs(config) do
+        M[k] = vim.tbl_deep_extend("force", M[k], v)
+    end
+end
 
 
 return M

@@ -1,14 +1,11 @@
+--TODO add a kill last mode cleanup step on running other modes
+--TODO clean up this mess ( init.lua )
+
 local utils = require("stupyder.utils")
 local config = require("stupyder.config")
-local contexts = require("stupyder.contexts")
 local ts = vim.treesitter
 
 local M = {}
-local modes = {
-    win = require("stupyder.modes.win"),
-    virtual_lines = require("stupyder.modes.virtual_lines"),
-    yank = require("stupyder.modes.yank")
-}
 
 local block_query = ts.query.parse("markdown",
     [[ (fenced_code_block (info_string (language) @lang) (code_fence_content) @content) ]])
@@ -47,8 +44,18 @@ local getCodeBlocks = function()
     return code_blocks
 end
 
-M.setup = function(opts)
+M.init_modes = function()
+    M.modes = {}
+    M.modes.win = require("stupyder.modes.win")
+    M.modes.virtual_lines = require("stupyder.modes.virtual_lines")
+    M.modes.yank = require("stupyder.modes.yank")
+end
 
+M.setup = function(opts)
+    config:apply_user_config(opts)
+
+    M.init_modes()
+    M.contexts = require("stupyder.contexts")
 end
 
 M.run_on_cursor = function(mode)
@@ -61,7 +68,7 @@ M.run_on_cursor = function(mode)
         mode = config.run_options.default_mode
     end
 
-    for i, v in pairs(modes) do
+    for i, v in pairs(M.modes) do
         if i == mode:lower() then
             M.run_code(v, block)
             return
@@ -82,7 +89,7 @@ M.run_code = function(mode, block)
     -- Match language up with a context
     -- TODO support for multiple enabled contexts
     for k, _ in pairs(lang_conf.contexts) do
-        if not contexts[k] then
+        if not M.contexts[k] then
             print(k .. " context does not exist")
         end
 
@@ -94,7 +101,7 @@ M.run_code = function(mode, block)
             config = run_config
         }
 
-        contexts[k]:run(mode, run_info)
+        M.contexts[k]:run(mode, run_info)
     end
 end
 

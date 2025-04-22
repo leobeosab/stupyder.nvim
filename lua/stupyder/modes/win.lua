@@ -1,4 +1,3 @@
--- TODO bind q to quit and config to toggle that
 -- TODO add config to not focus output
 
 local ui = require("stupyder.ui")
