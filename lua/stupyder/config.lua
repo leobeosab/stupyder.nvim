@@ -1,6 +1,7 @@
 local M = {
     run_options = {
-        print_debug_info = false
+        print_debug_info = false,
+        default_mode = "virtual_lines",
     },
     tools = {
         python = {

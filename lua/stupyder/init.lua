@@ -58,8 +58,7 @@ M.run_on_cursor = function(mode)
     end
 
     if mode == "" then
-        -- TODO add default mode to config
-        mode = "virtual_lines"
+        mode = config.run_options.default_mode
     end
 
     for i, v in pairs(modes) do
