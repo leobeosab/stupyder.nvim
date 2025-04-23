@@ -116,7 +116,10 @@ function CommandContext:run(mode, run_info)
         config.event_handlers.on_error(mode, {err or "Cannot create a file"}, {
             run_info = run_info,
         })
-        -- TODO make a cleanup label
+        config.event_handlers.on_end(mode, {
+            data = { result_status = 1 },
+            run_info = run_info,
+        })
         return
     end
 
@@ -168,6 +171,7 @@ function CommandContext:run(mode, run_info)
             })
         end
     end)
+
 end
 
 function CommandContext:is_running()

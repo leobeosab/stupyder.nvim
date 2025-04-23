@@ -21,20 +21,22 @@ local getCodeBlocks = function()
     for _, match, _ in block_query:iter_matches(root, bufnr, 0, -1) do
         local code_block = {}
 
-        for id, node in pairs(match) do
-            local name = block_query.captures[id] -- Name of the capture from the query
-            local start_line, _, end_line, _ = node:range()
+        for id, nodes in pairs(match) do
+            for _, node in ipairs(nodes) do
+                local name = block_query.captures[id] -- Name of the capture from the query
+                local start_line, _, end_line, _ = node:range()
 
-            if name == "lang" then
-                code_block.language = ts.get_node_text(node, bufnr)
-            end
+                if name == "lang" then
+                    code_block.language = ts.get_node_text(node, bufnr)
+                end
 
-            if name == "content" then
-                code_block.code = ts.get_node_text(node, bufnr)
-                code_block.loc = {
-                    start_line = start_line,
-                    end_line = end_line
-                }
+                if name == "content" then
+                    code_block.code = ts.get_node_text(node, bufnr)
+                    code_block.loc = {
+                        start_line = start_line,
+                        end_line = end_line
+                    }
+                end
             end
         end
 
