@@ -21,21 +21,11 @@ M.get_tmp_dir = function()
 end
 
 M.create_temp_filename = function(ext)
+    --TODO this needs to be a config
     local dir = "/tmp/stupyder"
     vim.fn.mkdir(dir, "p")
     local randStr = M.generateRandomString()
     return string.format("%s/%s.%s", dir, randStr, ext)
-end
-
-M.append_to_buffer = function(buff, lines)
-    if not vim.api.nvim_buf_is_valid(buff) then
-        print("Stupyder buff not valid")
-        return
-    end
-
-    local current_line = vim.api.nvim_buf_line_count(buff) - 1
-
-    vim.api.nvim_buf_set_lines(buff, current_line, current_line, false, lines)
 end
 
 M.generateRandomString = function()
