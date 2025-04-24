@@ -55,7 +55,6 @@ local default_config = {
 local M = default_config
 
 function M:apply_user_config(config)
-    print(vim.inspect(config))
     for k, v in pairs(config) do
         M[k] = vim.tbl_deep_extend("force", M[k], v)
     end

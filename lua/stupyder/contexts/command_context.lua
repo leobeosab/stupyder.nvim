@@ -132,7 +132,7 @@ function CommandContext:run(mode, run_info)
     local cmds = {}
 
     for _, cmd in ipairs(runCmd) do
-        table.insert(cmds, self:build_commands(cmd, config, file.filename))
+        table.insert(cmds, self:_build_commands(cmd, config, file.filename))
     end
 
     self.runner.cwd = cwd
