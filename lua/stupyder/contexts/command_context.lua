@@ -1,3 +1,4 @@
+--TODO add cleanup options ( save files to delete )
 --TODO add support for only outputting info from certain commands
 --or by default the last command
 local Context = require("stupyder.contexts.context")
@@ -26,7 +27,7 @@ CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.defa
     }
 })
 
-local function create_file(content, config, cwd)
+function CommandContext:_create_file(content, config, cwd)
     local filename
 
     if type(config.filename) == "function" then
@@ -54,7 +55,7 @@ local function create_file(content, config, cwd)
     return { path=path, filename=filename }, nil
 end
 
-local function build_commands(cmd_bp, config, filename)
+function CommandContext:_build_commands(cmd_bp, config, filename)
     local cmd
 
     if type(cmd_bp) == "function" then
@@ -74,7 +75,7 @@ local function build_commands(cmd_bp, config, filename)
     return cmd
 end
 
-local function build_cwd(config)
+function CommandContext:_build_cwd(config)
     local cwd
 
     if type(cwd) == "function" then
@@ -110,8 +111,8 @@ function CommandContext:run(mode, run_info)
         run_info = run_info
     })
 
-    local cwd = build_cwd(config)
-    local file, err = create_file(run_info.block.code, config, cwd)
+    local cwd = self:_build_cwd(config)
+    local file, err = self:_create_file(run_info.block.code, config, cwd)
     if not file or err then
         config.event_handlers.on_error(mode, {err or "Cannot create a file"}, {
             run_info = run_info,
@@ -131,7 +132,7 @@ function CommandContext:run(mode, run_info)
     local cmds = {}
 
     for _, cmd in ipairs(runCmd) do
-        table.insert(cmds, build_commands(cmd, config, file.filename))
+        table.insert(cmds, self:build_commands(cmd, config, file.filename))
     end
 
     self.runner.cwd = cwd
