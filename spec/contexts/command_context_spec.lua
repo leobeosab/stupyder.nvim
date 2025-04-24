@@ -29,7 +29,7 @@ describe("Command Context Tests", function ()
     assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
 
     local expected = { filename="heythere.c", path = "/tmp/heythere.c" }
-    for k, v in pairs(out) do
+    for k, _ in pairs(out) do
       assert.equal(out[k], expected[k])
     end
 
