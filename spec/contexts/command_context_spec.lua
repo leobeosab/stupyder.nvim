@@ -10,6 +10,9 @@ describe("Command Context Tests", function ()
   end)
 
   it("Creates a file correctly", function ()
+    local utils = require("stupyder.utils")
+    utils.generateRandomString = function() return "heythere" end
+
     local file_mock = {
       write = function() end,
       close = function() end
@@ -20,10 +23,19 @@ describe("Command Context Tests", function ()
     io.open = function() return file_mock end
     spy.on(io, "open")
 
-    local _, err = ccontext:_create_file("somewords", { ext = "c" }, "/tmp")
+    local out, err = ccontext:_create_file("somewords", { ext = ".c" }, "/tmp")
 
     assert.falsy(err)
     assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
+
+    local expected = { filename="heythere.c", path = "/tmp/heythere.c" }
+    for k, v in pairs(out) do
+      assert.equal(out[k], expected[k])
+    end
+
+    io.open:revert()
   end)
+
+
 
 end)
