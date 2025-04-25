@@ -58,4 +58,8 @@ end
 function VirtualLineMode:done()
 end
 
+function VirtualLineMode:clean()
+    self:clear()
+end
+
 return VirtualLineMode

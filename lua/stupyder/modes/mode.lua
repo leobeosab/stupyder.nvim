@@ -18,4 +18,7 @@ end
 function Mode:done()
 end
 
+function Mode:clean()
+end
+
 return Mode

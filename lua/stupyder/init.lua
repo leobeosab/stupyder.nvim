@@ -8,6 +8,7 @@ local reader = require("stupyder.reader")
 local M = {}
 
 M.init_modes = function()
+    M.last_mode = nil
     M.modes = {}
     M.modes.win = require("stupyder.modes.win")
     M.modes.virtual_lines = require("stupyder.modes.virtual_lines")
@@ -42,6 +43,11 @@ M.run_on_cursor = function(mode)
 end
 
 M.run_code = function(mode, block)
+    -- clean last mode output if we changed modes
+    if M.last_mode and M.last_mode ~= mode then
+        M.last_mode:clean()
+    end
+
     local lang_conf = config.tools[block.language]
     if not lang_conf or not lang_conf.contexts or utils.table_length(lang_conf.contexts) < 1 then
         print("lang context not implemented")
@@ -64,6 +70,7 @@ M.run_code = function(mode, block)
             config = run_config
         }
 
+        M.last_mode = mode
         M.contexts[k]:run(mode, run_info)
     end
 end

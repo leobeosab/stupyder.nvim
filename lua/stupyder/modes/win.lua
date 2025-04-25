@@ -4,6 +4,7 @@ local ui = require("stupyder.ui")
 local config = require("stupyder.config").modes.win
 
 local WinMode = {}
+
 local win = ui:new()
 
 function WinMode:start()
@@ -23,6 +24,10 @@ function WinMode:append_errors(lines)
 end
 
 function WinMode:done()
+end
+
+function WinMode:clean()
+    win:close()
 end
 
 return WinMode

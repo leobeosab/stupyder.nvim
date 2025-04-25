@@ -31,4 +31,7 @@ function Yank:done()
     vim.fn.setreg(config.register, output)
 end
 
+function Yank:clean()
+end
+
 return Yank
