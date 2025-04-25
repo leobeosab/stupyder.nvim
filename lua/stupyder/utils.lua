@@ -6,9 +6,18 @@ M.ends_with_sep = function(path)
     return path:sub(-1) == M.dir_sep
 end
 
--- This is hacky but there is no way to get the tmp directory without it
+M.run_func_or_return = function(maybe_func, ...)
+    if type(maybe_func) == "function" then
+        return maybe_func(...)
+    end
+
+    return maybe_func
+end
+
+-- This feels hacky but there is no way to get the tmp directory without it
 -- works for now, thanks @djfdyuruiry
 M.get_tmp_dir = function()
+    -- TODO look into using tmpnames instead
     local tmp_file_path = os.tmpname()
 
     -- remove generated temp file

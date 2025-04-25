@@ -42,6 +42,10 @@ local default_config = {
         },
         win = {
             close_shortcut = "q",
+            win_config = {
+                split = "below",
+                height = 10
+            }
         },
         yank = {
             register = "\"\""

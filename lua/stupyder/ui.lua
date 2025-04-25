@@ -1,3 +1,5 @@
+local utils = require("stupyder.utils")
+local ror = utils.run_func_or_return
 
 local M = {}
 M.__index = M
@@ -29,14 +31,10 @@ function M:get_or_create_buff()
     return self.buf
 end
 
-function M:create_split()
+function M:create_window()
     local buf = self:get_or_create_buff()
 
-    vim.cmd('split')
-    vim.cmd('wincmd j')
-    vim.cmd('horizontal resize 10')
-
-    local win = vim.api.nvim_get_current_win()
+    local win = vim.api.nvim_open_win(buf, false, self.opts.win_config)
 
     vim.api.nvim_win_set_buf(win, buf)
 
@@ -52,7 +50,7 @@ function M:open(opts)
     end
 
     if check == -2 or check == -3 then
-        self:create_split()
+        self:create_window()
     end
 end
 

@@ -1,8 +1,9 @@
 ## Hello
 world
 
+
 ```python
-print("hello\nworld\nhi")
+print("hello, world")
 ```
 
 ```python
@@ -14,6 +15,7 @@ for i in range(0, 10):
     print(i, flush=True)
 ```
 
+
 ```c
 #include <stdio.h>
 
@@ -23,9 +25,25 @@ int main() {
 }
 ```
 
+
 ```bash
 echo "ahhhh" >> somefile
 cat somefile
+```
+
+
+```lua
+print("hello")
+
+print(string.find("/tmp/XXXXXXXXXXXXXX", "[a-zA-Z]+12[a-zA-Z]+$"))
+
+
+```
+
+```go
+func main() {
+
+}
 ```
 
 ```lua
@@ -51,6 +69,6 @@ local function getTempPath()
     return exampleTempFilePath:sub(1, tempPathStringLength)
 end
 
-print(vim.fs.normalize("./something"))
+print(vim.fs.normalize("./"))
 
 ```
