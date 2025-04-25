@@ -55,16 +55,15 @@ function M:open(opts)
 end
 
 function M:close()
-    if vim.api.nvim_buf_is_valid(self.buf) then
+    if self.buf and vim.api.nvim_buf_is_valid(self.buf) then
         vim.api.nvim_buf_delete(self.buf, {})
     end
 
-
-    self.buf = nil
-
-    if vim.api.nvim_win_is_valid(self.win) then
+    if self.win and  vim.api.nvim_win_is_valid(self.win) then
         vim.api.nvim_win_close(self.win, true)
     end
+
+    self.buf = nil
     self.win = nil
 end
 

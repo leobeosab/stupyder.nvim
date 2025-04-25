@@ -28,6 +28,11 @@ M.run_on_cursor = function(mode)
         print("No code block under cursor")
     end
 
+    if mode == "clean" then
+        M.clean()
+        return
+    end
+
     if mode == "" then
         mode = config.run_options.default_mode
     end
@@ -40,6 +45,12 @@ M.run_on_cursor = function(mode)
     end
 
     print("Invalid mode")
+end
+
+M.clean = function()
+    for _, v in pairs(M.modes) do
+        v:clean()
+    end
 end
 
 M.run_code = function(mode, block)
