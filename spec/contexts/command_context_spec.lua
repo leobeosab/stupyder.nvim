@@ -1,17 +1,22 @@
 local ccontext = require("stupyder.contexts.command_context")
 local helpers = require("spec.helpers")
+local utils = require("stupyder.utils")
 --TODO compare output, finish tests
 
-describe("Command Context Tests", function ()
-  local og_io_open
+local moc = function(source, target, func, spy, finally)
+  local og = source[target]
+  source[target] = func
+  spy.on(source, target)
 
-  setup(function()
-    og_io_open = io.open
+  finally(function()
+    source[target]:clear()
+    source[target] = og
   end)
+end
 
+describe("Command Context Tests", function ()
   it("Creates a file correctly", function ()
-    local utils = require("stupyder.utils")
-    utils.generateRandomString = function() return "heythere" end
+    moc(utils, "generateRandomString", function() return "heythere" end, spy, finally)
 
     local file_mock = {
       write = function() end,
@@ -20,8 +25,7 @@ describe("Command Context Tests", function ()
     spy.on(file_mock, "write")
     spy.on(file_mock, "close")
 
-    io.open = function() return file_mock end
-    spy.on(io, "open")
+    moc(io, "open", function() return file_mock end, spy, finally)
 
     local out, err = ccontext:_create_file("somewords", { ext = ".c" }, "/tmp")
 
@@ -32,10 +36,75 @@ describe("Command Context Tests", function ()
     for k, _ in pairs(out) do
       assert.equal(out[k], expected[k])
     end
-
-    io.open:revert()
   end)
 
+  local cwd_tests = {
+    {
+      input = "{tmpdir}/stupyder",
+      expect = "/tmp/stupyder",
+      test = function(result)
+        assert.spy(utils.get_tmp_dir).was.called(1)
+      end,
+    },
+    {
+      input = "/stupyder",
+      expect = "/stupyder",
+      test = function(result)
+        assert.spy(utils.get_tmp_dir).was.called(0)
+      end,
+    },
+  }
 
+  it("Builds cwds correctly", function()
+    moc(vim.fn, "mkdir", function() end, spy, finally)
+    moc(utils, "get_tmp_dir", function() return "/tmp" end, spy, finally)
 
+    -- Test with tmp dir
+    for _, t in pairs(cwd_tests) do
+      local o = ccontext:_build_cwd({ cwd = t.input })
+      assert.equal(t.expect, o)
+      t.test(o)
+      utils.get_tmp_dir:clear()
+    end
+  end)
+
+  local command_tests = {
+    {
+      input = {"gcc {code_file} -o {code_file}.bin", "myfile.c"},
+      expect = "gcc myfile.c -o myfile.c.bin",
+      test = function()
+
+      end,
+    },
+
+    {
+      input = {"gcc {code_file} -o {tmpdir}/{code_file}.bin", "myfile.c"},
+      expect = "gcc myfile.c -o /tmp/myfile.c.bin",
+      test = function()
+        assert.spy(utils.get_tmp_dir).was.called(1)
+      end,
+    },
+
+    {
+      input = {"gcc {code_file} -o {code_file}.bin", "myfile.c"},
+      expect = "gcc myfile.c -o myfile.c.bin",
+      test = function()
+
+      end,
+    },
+  }
+
+  it("Builds commands correctly", function()
+    moc(utils, "get_tmp_dir", function () return "/tmp" end, spy, finally)
+  
+    for _, t in pairs(command_tests) do
+      local o = ccontext:_build_commands(t.input[1], {}, t.input[2])
+      assert.equal(t.expect, o)
+      t.test()
+      utils.get_tmp_dir:clear()
+    end
+
+  end)
+
+  
 end)

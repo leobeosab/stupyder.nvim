@@ -46,7 +46,6 @@ describe("Test Utils", function()
     assert.falsy(utils.str_includes(stringFail, "world"))
 
   end)
-  print("what")
 
   local func_or_return_tests = {
     {

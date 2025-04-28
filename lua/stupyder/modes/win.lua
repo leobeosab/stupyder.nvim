@@ -1,5 +1,3 @@
--- TODO add config to not focus output
-
 local ui = require("stupyder.ui")
 local config = require("stupyder.config").modes.win
 

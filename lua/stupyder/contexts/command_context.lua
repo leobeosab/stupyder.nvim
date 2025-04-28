@@ -56,13 +56,7 @@ function CommandContext:_create_file(content, config, cwd)
 end
 
 function CommandContext:_build_commands(cmd_bp, config, filename)
-    local cmd
-
-    if type(cmd_bp) == "function" then
-        cmd = config.cmd(config)
-    else
-        cmd = cmd_bp
-    end
+    local cmd = utils.run_func_or_return(cmd_bp)
 
     if utils.str_includes(cmd, "{tmpdir}") then
         cmd = cmd:gsub("{tmpdir}", utils.get_tmp_dir())
@@ -76,13 +70,7 @@ function CommandContext:_build_commands(cmd_bp, config, filename)
 end
 
 function CommandContext:_build_cwd(config)
-    local cwd
-
-    if type(cwd) == "function" then
-        cwd = config.cwd()
-    else
-        cwd = config.cwd
-    end
+    local cwd = utils.run_func_or_return(config.cwd)
 
     if utils.str_includes(cwd, "{tmpdir}") then
         cwd = cwd:gsub("{tmpdir}", utils.get_tmp_dir())
