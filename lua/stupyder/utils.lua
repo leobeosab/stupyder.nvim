@@ -17,7 +17,6 @@ end
 -- This feels hacky but there is no way to get the tmp directory without it
 -- works for now, thanks @djfdyuruiry
 M.get_tmp_dir = function()
-    -- TODO look into using tmpnames instead
     local tmp_file_path = os.tmpname()
 
     -- remove generated temp file
@@ -27,14 +26,6 @@ M.get_tmp_dir = function()
     local sub_index = #tmp_file_path - sep_index
 
     return tmp_file_path:sub(1, sub_index)
-end
-
-M.create_temp_filename = function(ext)
-    --TODO this needs to be a config
-    local dir = "/tmp/stupyder"
-    vim.fn.mkdir(dir, "p")
-    local randStr = M.generateRandomString()
-    return string.format("%s/%s.%s", dir, randStr, ext)
 end
 
 M.generateRandomString = function()

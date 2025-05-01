@@ -65,7 +65,6 @@ M.run_code = function(mode, block)
     end
 
     -- Match language up with a context
-    -- TODO support for multiple enabled contexts
     for k, _ in pairs(lang_conf.contexts) do
         if not M.contexts[k] then
             print(k .. " context does not exist")

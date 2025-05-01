@@ -1,6 +1,3 @@
---TODO add cleanup options ( save files to delete )
---TODO add support for only outputting info from certain commands
---or by default the last command
 local Context = require("stupyder.contexts.context")
 local utils = require("stupyder.utils")
 local Runner = require("stupyder.runner")
@@ -8,6 +5,10 @@ local Runner = require("stupyder.runner")
 local CommandContext = setmetatable({}, { __index = Context })
 CommandContext.runner = Runner:new()
 CommandContext.type = "command_context"
+CommandContext.current_run = {
+    remove_files = {},
+    cwd = "",
+}
 
 CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.default_config, {
     cwd = "./",
@@ -28,19 +29,9 @@ CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.defa
 })
 
 function CommandContext:_create_file(content, config, cwd)
-    local filename
+    local filename = utils.generateRandomString()
 
-    if type(config.filename) == "function" then
-        filename = filename(config)
-    else
-        filename = config.filename
-    end
-
-    if not filename or config.tmpfile then
-        filename = utils.generateRandomString()
-    end
-
-    filename = vim.fs.normalize(filename .. config.ext)
+    filename = vim.fs.normalize(filename .. ".stupyder" .. config.ext)
 
     local path = cwd .. utils.dir_sep .. filename
 
@@ -52,7 +43,9 @@ function CommandContext:_create_file(content, config, cwd)
     tmpfile:write(content)
     tmpfile:close()
 
-    return { path=path, filename=filename }, nil
+    self.current_run.remove_files[#self.current_run.remove_files+1] = path
+
+    return { path=path, filename=filename}, nil
 end
 
 function CommandContext:_build_commands(cmds, config, filename)
@@ -104,19 +97,12 @@ function CommandContext:run(mode, run_info)
         print("Currently running: " .. self.runner.current_command)
     end
 
-    local tmpFileName = utils.create_temp_filename(run_info.block.language)
-    local tmpfile = io.open(tmpFileName, "w")
-    if not tmpfile then
-        print("err")
-        return
-    end
-
     config.event_handlers.on_start(mode, {
         run_info = run_info
     })
 
-    local cwd = self:_build_cwd(config)
-    local file, err = self:_create_file(run_info.block.code, config, cwd)
+    self.current_run.cwd = self:_build_cwd(config)
+    local file, err = self:_create_file(run_info.block.code, config, self.current_run.cwd)
     if not file or err then
         config.event_handlers.on_error(mode, {err or "Cannot create a file"}, {
             run_info = run_info,
@@ -130,7 +116,7 @@ function CommandContext:run(mode, run_info)
 
     local cmds = self:_build_commands(config.cmd, config, file.filename)
 
-    self.runner.cwd = cwd
+    self.runner.cwd = self.current_run.cwd
     self.runner:run_commands(cmds, function(event, data, cmd)
         if event == "start" then
             config.event_handlers.on_command_start(mode, {
@@ -165,9 +151,25 @@ function CommandContext:run(mode, run_info)
                 data = { result_status = data },
                 run_info = run_info
             })
+
+            self:cleanup(config)
         end
     end)
 
+end
+
+function CommandContext:cleanup(config)
+    if config.remove_files then
+        for _,v in ipairs(config.remove_files) do
+            table.insert(self.current_run.remove_files, self.current_run.cwd .. utils.dir_sep .. v)
+        end
+    end
+
+    for _, v in ipairs(self.current_run.remove_files) do
+        pcall(os.remove, v)
+    end
+
+    self.current_run = { remove_files = {}, cwd = "" }
 end
 
 function CommandContext:is_running()

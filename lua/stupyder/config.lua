@@ -26,7 +26,8 @@ local default_config = {
             contexts = {
                 command_context = {
                     ext =".c",
-                    cmd = { "gcc {code_file} -o {code_file}.bin", "./{code_file}.bin" },
+                    cmd = { "gcc {code_file} -o out.bin", "./out.bin" },
+                    remove_files = { "out.bin" },
                     cwd = "{tmpdir}/stupyder/c"
                 }
             }
