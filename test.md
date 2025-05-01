@@ -31,13 +31,6 @@ echo "ahhhh" >> somefile
 cat somefile
 ```
 
-```mermaid
-sequenceDiagram
-    Alice->>John: Hello John, how are you?
-    John-->>Alice: fuck!
-    Alice-)John: See you later!
-
-```
 
 ```lua
 print("hello")
