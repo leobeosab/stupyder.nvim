@@ -22,13 +22,17 @@ end
 
 function Yank:done()
     local output = ""
+    local count
 
-    for _, v in ipairs(content) do
+    for i, v in ipairs(content) do
         output = output .. v .. "\n"
+        count = i
     end
 
 
     vim.fn.setreg(config.register, output)
+
+    vim.notify("Yanked ".. count .. " line(s)")
 end
 
 function Yank:clean()
