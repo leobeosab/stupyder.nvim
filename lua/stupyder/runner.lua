@@ -16,7 +16,9 @@ end
 
 function M:run_queued_commands(event_cb)
     local argsTable = {}
-    local command = table.remove(self.queue, 1)
+
+    local cmd = table.remove(self.queue, 1)
+    local command = cmd[1]
 
     for token in string.gmatch(command, "[^%s]+") do
         table.insert(argsTable, token)
@@ -62,7 +64,7 @@ function M:run_queued_commands(event_cb)
         assert(not err, err)
         if data then
             vim.schedule(function()
-                event_cb(pipe, data)
+                event_cb(pipe, data, cmd)
             end)
         end
     end

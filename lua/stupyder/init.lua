@@ -1,5 +1,3 @@
---TODO add a kill last mode cleanup step on running other modes
---TODO clean up this mess ( init.lua )
 
 local utils = require("stupyder.utils")
 local config = require("stupyder.config")

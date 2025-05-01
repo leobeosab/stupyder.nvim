@@ -71,7 +71,9 @@ describe("Command Context Tests", function ()
   local command_tests = {
     {
       input = {"gcc {code_file} -o {code_file}.bin", "myfile.c"},
-      expect = "gcc myfile.c -o myfile.c.bin",
+      expect = {
+        {"gcc myfile.c -o myfile.c.bin", {output_stdout=true}}
+      },
       test = function()
 
       end,
@@ -79,7 +81,20 @@ describe("Command Context Tests", function ()
 
     {
       input = {"gcc {code_file} -o {tmpdir}/{code_file}.bin", "myfile.c"},
-      expect = "gcc myfile.c -o /tmp/myfile.c.bin",
+      expect = {
+        {"gcc myfile.c -o /tmp/myfile.c.bin", {output_stdout=true}}
+      },
+      test = function()
+        assert.spy(utils.get_tmp_dir).was.called(1)
+      end,
+    },
+
+    {
+      input = {{"gcc {code_file} -o {tmpdir}/{code_file}.bin", "./{code_file}.bin"}, "myfile.c"},
+      expect = {
+        {"gcc myfile.c -o /tmp/myfile.c.bin", {output_stdout = false}},
+        {"./myfile.c.bin", {output_stdout=true}},
+      },
       test = function()
         assert.spy(utils.get_tmp_dir).was.called(1)
       end,
@@ -87,7 +102,7 @@ describe("Command Context Tests", function ()
 
     {
       input = {"gcc {code_file} -o {code_file}.bin", "myfile.c"},
-      expect = "gcc myfile.c -o myfile.c.bin",
+      expect = {{"gcc myfile.c -o myfile.c.bin", {output_stdout=true}}},
       test = function()
 
       end,
@@ -99,7 +114,7 @@ describe("Command Context Tests", function ()
   
     for _, t in pairs(command_tests) do
       local o = ccontext:_build_commands(t.input[1], {}, t.input[2])
-      assert.equal(t.expect, o)
+      assert.same(t.expect, o)
       t.test()
       utils.get_tmp_dir:clear()
     end

@@ -55,18 +55,34 @@ function CommandContext:_create_file(content, config, cwd)
     return { path=path, filename=filename }, nil
 end
 
-function CommandContext:_build_commands(cmd_bp, config, filename)
-    local cmd = utils.run_func_or_return(cmd_bp)
-
-    if utils.str_includes(cmd, "{tmpdir}") then
-        cmd = cmd:gsub("{tmpdir}", utils.get_tmp_dir())
+function CommandContext:_build_commands(cmds, config, filename)
+    local bps = cmds
+    if type(bps) ~= "table" then
+        bps = { bps }
     end
 
-    if utils.str_includes(cmd, "{code_file}") then
-        cmd = cmd:gsub("{code_file}", filename)
+    local cmds = {}
+
+    for i, bp in ipairs(bps) do
+        local cmd = utils.run_func_or_return(bp)
+
+        if utils.str_includes(cmd, "{tmpdir}") then
+            cmd = cmd:gsub("{tmpdir}", utils.get_tmp_dir())
+        end
+
+        if utils.str_includes(cmd, "{code_file}") then
+            cmd = cmd:gsub("{code_file}", filename)
+        end
+
+        -- We only want to output the last command
+        table.insert(cmds, {cmd,
+            {
+                output_stdout = i == #bps
+            }
+        })
     end
 
-    return cmd
+    return cmds
 end
 
 function CommandContext:_build_cwd(config)
@@ -112,19 +128,10 @@ function CommandContext:run(mode, run_info)
         return
     end
 
-    local runCmd = config.cmd
-    if type(runCmd) ~= "table" then
-        runCmd = { runCmd }
-    end
-
-    local cmds = {}
-
-    for _, cmd in ipairs(runCmd) do
-        table.insert(cmds, self:_build_commands(cmd, config, file.filename))
-    end
+    local cmds = self:_build_commands(config.cmd, config, file.filename)
 
     self.runner.cwd = cwd
-    self.runner:run_commands(cmds, function(event, data)
+    self.runner:run_commands(cmds, function(event, data, cmd)
         if event == "start" then
             config.event_handlers.on_command_start(mode, {
                 data = { command = data.command },
@@ -141,7 +148,7 @@ function CommandContext:run(mode, run_info)
 
             if event == "stderr" then
                 config.event_handlers.on_error(mode, lines, { run_info=run_info })
-            else
+            elseif cmd[2].output_stdout then
                 config.event_handlers.on_data(mode, lines, { run_info=run_info })
             end
         end

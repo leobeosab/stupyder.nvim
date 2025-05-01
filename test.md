@@ -31,18 +31,28 @@ echo "ahhhh" >> somefile
 cat somefile
 ```
 
+```mermaid
+sequenceDiagram
+    Alice->>John: Hello John, how are you?
+    John-->>Alice: fuck!
+    Alice-)John: See you later!
+
+```
 
 ```lua
 print("hello")
 
 print(string.find("/tmp/XXXXXXXXXXXXXX", "[a-zA-Z]+12[a-zA-Z]+$"))
 
-
 ```
 
 ```go
-func main() {
+package main
 
+import ("fmt")
+
+func main() {
+    fmt.Println("Hey")
 }
 ```
 

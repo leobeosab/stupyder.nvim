@@ -4,6 +4,14 @@ local default_config = {
         default_mode = "virtual_lines",
     },
     tools = {
+        go = {
+            contexts = {
+                command_context = {
+                    ext = ".go",
+                    cmd = {"go fmt {code_file}", "go run {code_file}"}
+                }
+            }
+        },
         python = {
             -- TODO support for venv
             contexts = {
