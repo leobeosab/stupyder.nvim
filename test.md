@@ -1,11 +1,15 @@
-## Hello
-world
+## Stupyder test file
+A bunch of simple code snippets in different languages to test Stupyder.nvim
 
 
+## Python Demos
+
+Basic hello world
 ```python
 print("hello, world")
 ```
 
+Demo to show incremental output working
 ```python
 import time
 
@@ -15,7 +19,23 @@ for i in range(0, 10):
     print(i, flush=True)
 ```
 
+Bash script example
+```bash
+echo "ahhhh" >> somefile
+cat somefile
+```
 
+Lua hello world
+```lua
+print("hello")
+
+print(string.find("/tmp/XXXXXXXXXXXXXX", "[a-zA-Z]+12[a-zA-Z]+$"))
+
+```
+
+## Compiled Languages
+
+C hello world
 ```c
 #include <stdio.h>
 
@@ -26,19 +46,7 @@ int main() {
 ```
 
 
-```bash
-echo "ahhhh" >> somefile
-cat somefile
-```
-
-
-```lua
-print("hello")
-
-print(string.find("/tmp/XXXXXXXXXXXXXX", "[a-zA-Z]+12[a-zA-Z]+$"))
-
-```
-
+Golang hello world
 ```go
 package main
 
@@ -49,29 +57,3 @@ func main() {
 }
 ```
 
-```lua
-print("hello")
-
-local str = "python {tmpfile}" 
-print(vim.inspect(string.gmatch(str, "{tmpfile}")))
-
-print(type(dsa))
-print(os.tmpname())
-print(package.config)
-
-local function getTempPath()
-    local directorySeperator = package.config:match("([^\n]*)\n?")
-    local exampleTempFilePath = os.tmpname()
-    
-    -- remove generated temp file
-    pcall(os.remove, exampleTempFilePath)
-
-    local seperatorIdx = exampleTempFilePath:reverse():find(directorySeperator)
-    local tempPathStringLength = #exampleTempFilePath - seperatorIdx
-
-    return exampleTempFilePath:sub(1, tempPathStringLength)
-end
-
-print(vim.fs.normalize("./"))
-
-```
