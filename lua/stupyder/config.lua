@@ -57,7 +57,7 @@ local default_config = {
             }
         },
         yank = {
-            register = "\"\""
+            register = "*"
         }
     },
     contexts = {
