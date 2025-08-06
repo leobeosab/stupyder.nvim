@@ -55,11 +55,11 @@ Stupyder has multiple "modes" which are just different ways of handling output f
 
 ### Virtual Text ( default )
 Creates virtual text below the code block.
-![virtual lines example](./media/virtuallinesdemo.png)
+![virtual lines  example](./media/windemo.png)
 
 ### Win(dow)
 Creates a new window and pumps the output into it.
-![win example](./media/windemo.png)
+![win example](./media/virtuallinesdemo.png)
 
 ### Yank
 Yanks the output to a user-specified register. Check the example config to see the different registers.
