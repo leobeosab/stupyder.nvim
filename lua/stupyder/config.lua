@@ -36,7 +36,8 @@ local default_config = {
             contexts = {
                 command_context = {
                     ext = ".sh",
-                    cmd = { "chmod +x {code_file}", "bash {code_file}" }
+                    cmd = { "chmod +x {code_file}", "bash {code_file}" },
+                    cwd = "{tmpdir}/stupyder/bash"
                 }
             }
         },

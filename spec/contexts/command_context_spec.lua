@@ -1,5 +1,4 @@
 local ccontext = require("stupyder.contexts.command_context")
-local helpers = require("spec.helpers")
 local utils = require("stupyder.utils")
 --TODO compare output, finish tests
 
@@ -32,9 +31,9 @@ describe("Command Context Tests", function ()
     assert.falsy(err)
     assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
 
-    local expected = { filename="heythere.c", path = "/tmp/heythere.c" }
+    local expected = { filename="heythere.stupyder.c", path = "/tmp/heythere.stupyder.c" }
     for k, _ in pairs(out) do
-      assert.equal(out[k], expected[k])
+      assert.equal(expected[k], out[k])
     end
   end)
 

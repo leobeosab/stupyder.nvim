@@ -32,7 +32,7 @@ function Yank:done()
 
     vim.fn.setreg(config.register, output)
 
-    vim.notify("Yanked ".. count .. " line(s)")
+    vim.notify("Yanked ".. count .. " line(s)\n" .. output)
 end
 
 function Yank:clean()

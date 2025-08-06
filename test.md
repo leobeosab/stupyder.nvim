@@ -45,6 +45,8 @@ vim.cmd("colorscheme tearout")
 
 int main() {
     printf("hello!\n");
+    printf("world!\n");
+    printf("lord of rings was mid\n");
     return 0;
 }
 ```
