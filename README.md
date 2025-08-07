@@ -145,12 +145,25 @@ local default_config = {
         }
       }
     },
+    rust = {
+      contexts = {
+        command_context = {
+          ext = ".rs",
+          cmd = {
+            "rustc {code_file} -o out_rs",
+            "./out_rs",
+          },
+          remove_files = { "out_rs" },
+          cwd = "{tmpdir}/stupyder/rust",
+        }
+      }
+    },
     c = {
       contexts = {
         command_context = {
           ext =".c",
           cmd = { "gcc {code_file} -o out.bin", "./out.bin" },
-          -- list of files to remove
+          -- list of files excluding the code file to remove
           remove_files = { "out.bin" },
           -- change where the command(s) are executed, default is pwd
           cwd = "{tmpdir}/stupyder/c"
@@ -194,5 +207,10 @@ local default_config = {
   contexts = {
     -- Default settings, you can add cwd, filename, etc
     default = {},
+    command_context = {
+      -- This is appended onto each code file created with the command context ie test.c is test_stupyder.c
+      -- to remove set to ""
+      stupyder_file_id = "_stupyder"
+    }
   },
 }

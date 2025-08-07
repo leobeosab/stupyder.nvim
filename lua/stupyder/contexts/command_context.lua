@@ -1,6 +1,7 @@
 local Context = require("stupyder.contexts.context")
 local utils = require("stupyder.utils")
 local Runner = require("stupyder.runner")
+local config = require("stupyder.config")
 
 local CommandContext = setmetatable({}, { __index = Context })
 CommandContext.runner = Runner:new()
@@ -10,7 +11,8 @@ CommandContext.current_run = {
     cwd = "",
 }
 
-CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.default_config, {
+-- Initial init of command context config with defaults
+CommandContext.config = vim.tbl_deep_extend("force", CommandContext.default_config, {
     cwd = "./",
     cmd = "echo \"not implemented\"",
     env = {},
@@ -28,10 +30,23 @@ CommandContext.default_config = vim.tbl_deep_extend("force", CommandContext.defa
     }
 })
 
-function CommandContext:_create_file(content, config, cwd)
-    local filename = utils.generateRandomString()
+-- Update config with user's command context config
+CommandContext.config = vim.tbl_deep_extend("force", CommandContext.config, config.contexts.command_context)
 
-    filename = vim.fs.normalize(filename .. ".stupyder" .. config.ext)
+
+function CommandContext:_create_file(content, config, cwd)
+    local filename_builder = utils.generateRandomString()
+    if config.filename then
+        filename_builder = config.filename
+    end
+
+    if config.stupyder_file_id then
+        filename_builder = filename_builder .. config.stupyder_file_id
+    end
+
+    filename_builder = filename_builder .. config.ext
+
+    local filename = vim.fs.normalize(filename_builder)
 
     local path = cwd .. utils.dir_sep .. filename
 
@@ -90,7 +105,7 @@ function CommandContext:_build_cwd(config)
 end
 
 function CommandContext:run(mode, run_info)
-    run_info.config = vim.tbl_deep_extend("force", self.default_config, run_info.config)
+    run_info.config = vim.tbl_deep_extend("force", self.config, run_info.config)
     local config = run_info.config
 
     if self:is_running() then
