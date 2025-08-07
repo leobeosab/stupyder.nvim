@@ -22,6 +22,19 @@ local default_config = {
                 }
             }
         },
+        rust = {
+            contexts = {
+                command_context = {
+                    ext = ".rs",
+                    cmd = {
+                        "rustc {code_file} -o out_rs",
+                        "./out_rs",
+                    },
+                    remove_files = { "out_rs" },
+                    cwd = "{tmpdir}/stupyder/rust",
+                }
+            }
+        },
         c = {
             contexts = {
                 command_context = {
@@ -63,6 +76,11 @@ local default_config = {
     },
     contexts = {
         default = {},
+        command_context = {
+            -- This is appended onto each code file created with the command context
+            -- to remove set to ""
+            stupyder_file_id = "_stupyder"
+        }
     },
 }
 

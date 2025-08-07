@@ -31,11 +31,58 @@ describe("Command Context Tests", function ()
     assert.falsy(err)
     assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
 
-    local expected = { filename="heythere.stupyder.c", path = "/tmp/heythere.stupyder.c" }
+    local expected = { filename="heythere.c", path = "/tmp/heythere.c" }
     for k, _ in pairs(out) do
       assert.equal(expected[k], out[k])
     end
   end)
+
+  it("Creates a file correctly with a stupyder id", function ()
+    moc(utils, "generateRandomString", function() return "heythere" end, spy, finally)
+
+    local file_mock = {
+      write = function() end,
+      close = function() end
+    }
+    spy.on(file_mock, "write")
+    spy.on(file_mock, "close")
+
+    moc(io, "open", function() return file_mock end, spy, finally)
+
+    local out, err = ccontext:_create_file("somewords", { ext = ".c", stupyder_file_id = "_stupyder" }, "/tmp")
+
+    assert.falsy(err)
+    assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
+
+    local expected = { filename="heythere_stupyder.c", path = "/tmp/heythere_stupyder.c" }
+    for k, _ in pairs(out) do
+      assert.equal(expected[k], out[k])
+    end
+  end)
+
+  it("Creates a file correctly with a filename set", function ()
+    moc(utils, "generateRandomString", function() return "heythere" end, spy, finally)
+
+    local file_mock = {
+      write = function() end,
+      close = function() end
+    }
+    spy.on(file_mock, "write")
+    spy.on(file_mock, "close")
+
+    moc(io, "open", function() return file_mock end, spy, finally)
+
+    local out, err = ccontext:_create_file("somewords", { ext = ".c", filename = "testfile" }, "/tmp")
+
+    assert.falsy(err)
+    assert.spy(file_mock.write).was.called_with(file_mock, "somewords")
+
+    local expected = { filename="testfile.c", path = "/tmp/testfile.c" }
+    for k, _ in pairs(out) do
+      assert.equal(expected[k], out[k])
+    end
+  end)
+
 
   local cwd_tests = {
     {

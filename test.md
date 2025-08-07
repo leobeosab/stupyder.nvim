@@ -8,6 +8,18 @@ A bunch of simple code snippets in different languages to test Stupyder.nvim
 print("hello, world")
 ```
 
+### Rust example
+```rust
+// This is the main function.
+fn main() {
+    // Statements here are executed when the compiled binary is called.
+
+    // Print text to the console.
+    println!("Hello World!");
+}
+
+```
+
 ### Demo to show incremental output working
 ```python
 import time
@@ -23,6 +35,7 @@ for i in range(0, 3):
 echo "ahhhh" >> somefile
 cat somefile
 ```
+
 
 ### Lua example + theme change
 ```lua
