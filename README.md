@@ -193,6 +193,8 @@ local default_config = {
     },
     win = {
       close_shortcut = "q",
+      -- Focus window when opening
+      enter_on_open = true,
       -- Standard neovim window config
       win_config = {
         split = "below",
