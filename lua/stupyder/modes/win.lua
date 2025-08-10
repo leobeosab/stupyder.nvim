@@ -8,7 +8,8 @@ local win = ui:new()
 function WinMode:start()
     win:open({
         close_shortcut = config.close_shortcut,
-        win_config = config.win_config
+        win_config = config.win_config,
+        enter = config.enter_on_open
     })
     win:clear_buff()
 end

@@ -65,6 +65,7 @@ local default_config = {
         },
         win = {
             close_shortcut = "q",
+            enter_on_open = true,
             win_config = {
                 split = "below",
                 height = 10

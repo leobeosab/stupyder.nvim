@@ -31,10 +31,14 @@ function M:get_or_create_buff()
     return self.buf
 end
 
+function M:focus()
+    vim.api.nvim_set_current_win(self.win)
+end
+
 function M:create_window()
     local buf = self:get_or_create_buff()
 
-    local win = vim.api.nvim_open_win(buf, false, self.opts.win_config)
+    local win = vim.api.nvim_open_win(buf, self.opts.enter, self.opts.win_config)
 
     vim.api.nvim_win_set_buf(win, buf)
 
@@ -45,12 +49,18 @@ function M:open(opts)
     self.opts = opts
     local check = self:check_status()
 
+    if check == 0 and opts.enter then
+        self:focus()
+    end
+
+    -- TODO: make an enum for the window check instead of ints
     if check == -1 then
         print("Opening with no buf, but with win")
     end
 
     if check == -2 or check == -3 then
         self:create_window()
+        return
     end
 end
 
